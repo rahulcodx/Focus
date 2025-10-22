@@ -28,6 +28,7 @@ export default function Streaks({ compact = false }: StreaksProps) {
   const [error, setError] = useState('');
   const [totalPoints, setTotalPoints] = useState(0);
   const [level, setLevel] = useState(1);
+  const [thisWeekMinutes, setThisWeekMinutes] = useState(0);
 
   useEffect(() => {
     fetchStreakData();
@@ -43,6 +44,8 @@ export default function Streaks({ compact = false }: StreaksProps) {
         // Get points and level from user stats
         setTotalPoints(response.data.overview.points || 0);
         setLevel(response.data.overview.level || 1);
+        const weekSeconds = response.data.overview.thisWeekFocusTime || 0;
+        setThisWeekMinutes(Math.floor(weekSeconds / 60));
       } else {
         setError(response.error || 'Failed to fetch streak data');
       }
@@ -115,6 +118,7 @@ export default function Streaks({ compact = false }: StreaksProps) {
           <div className="text-right">
             <p className="text-xl font-semibold text-black">{totalPoints}</p>
             <p className="text-xs text-black">Points</p>
+            <p className="text-xs text-black mt-1">Week: {thisWeekMinutes}m</p>
           </div>
         </div>
         <div className="grid grid-cols-7 gap-1">

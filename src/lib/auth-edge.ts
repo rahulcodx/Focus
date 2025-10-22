@@ -65,7 +65,7 @@ export async function verifyTokenEdge(token: string): Promise<JWTPayload | null>
       audience: 'planly-users',
     });
 
-    return payload as JWTPayload;
+    return payload as unknown as JWTPayload;
   } catch (error) {
     console.log('JWT verification failed:', error instanceof Error ? error.message : 'Unknown error');
     return null;
@@ -79,7 +79,7 @@ export function validateEmail(email: string): boolean {
 }
 
 export function validateName(name: string): boolean {
-  return name && name.trim().length >= 2 && name.trim().length <= 50;
+  return Boolean(name && name.trim().length >= 2 && name.trim().length <= 50);
 }
 
 // Rate limiting helper (Edge-compatible with Map instead of external cache)

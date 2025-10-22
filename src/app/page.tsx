@@ -126,16 +126,17 @@ export default function Home() {
           className="doodle bottom-32 left-[12%] hidden xl:block"
           style={{ transform: "rotate(-5deg)" }}
         >
-          <svg width="60" height="60" viewBox="0 0 70 70" fill="none">
+          <svg width="60" height="60" viewBox="0 0 90 90" fill="none">
             <text
               x="5"
-              y="45"
+              y="55"
               fontSize="40"
-              fontFamily="cursive"
+              fontFamily="serif"
               fill="#333"
               opacity="0.5"
             >
-              E=mc²
+              E=mc
+              <tspan baselineShift="super" fontSize="24">2</tspan>
             </text>
           </svg>
         </div>
@@ -177,6 +178,36 @@ export default function Home() {
               className="sketch-path"
               strokeWidth="2"
             />
+          </svg>
+        </div>
+
+        {/* Extra doodles for richer background */}
+        <div
+          className="doodle top-40 left-[24%] hidden lg:block"
+          style={{ transform: "rotate(6deg)" }}
+        >
+          <svg width="70" height="70" viewBox="0 0 80 80" fill="none">
+            <polygon points="10,40 40,10 70,40 40,70" className="sketch-path" strokeWidth="2" />
+          </svg>
+        </div>
+        <div
+          className="doodle top-[55%] right-[22%] hidden lg:block"
+          style={{ transform: "rotate(-10deg)" }}
+        >
+          <svg width="60" height="60" viewBox="0 0 70 70" fill="none">
+            <path d="M15 20 Q35 5 55 20 M15 30 Q35 15 55 30 M15 40 Q35 25 55 40" className="sketch-path" strokeWidth="2" />
+          </svg>
+        </div>
+        <div
+          className="doodle top-[35%] right-[6%] hidden xl:block"
+          style={{ transform: "rotate(4deg)" }}
+        >
+          <svg width="60" height="60" viewBox="0 0 70 70" fill="none">
+            <circle cx="35" cy="35" r="6" className="sketch-path" strokeWidth="2" />
+            <line x1="35" y1="10" x2="35" y2="25" className="sketch-path" strokeWidth="2" />
+            <line x1="35" y1="45" x2="35" y2="60" className="sketch-path" strokeWidth="2" />
+            <line x1="10" y1="35" x2="25" y2="35" className="sketch-path" strokeWidth="2" />
+            <line x1="45" y1="35" x2="60" y2="35" className="sketch-path" strokeWidth="2" />
           </svg>
         </div>
 
@@ -319,8 +350,8 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { number: "50K+", label: "Active Users" },
-              { number: "1M+", label: "Tasks Completed" },
+              { number: "5K+", label: "Active Users" },
+              { number: "40K+", label: "Tasks Completed" },
               { number: "99.9%", label: "Uptime" },
               { number: "4.9/5", label: "User Rating" },
             ].map((stat, i) => (
@@ -591,7 +622,7 @@ export default function Home() {
               {
                 name: "Sarah Chen",
                 role: "Product Designer",
-                text: "Zinco has completely transformed how I manage my day. The timer feature is a game-changer!",
+                text: "Planly has completely transformed how I manage my day. The timer feature is a game-changer!",
                 avatar: (
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold">
                     SC
@@ -683,7 +714,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Limited journals and chats
+                    Basic Pomodoro timer
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -699,7 +730,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Limited image and video generations
+                    Up to 10 tasks per day
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -715,7 +746,23 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Limited notes transcriptions
+                    Basic streak tracking
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <svg
+                    className="w-4 h-4 text-[var(--accent-teal)] mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-gray-600 text-sm">
+                    Simple notes
                   </span>
                 </li>
               </ul>
@@ -732,14 +779,13 @@ export default function Home() {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[var(--accent-teal)] text-white text-xs font-semibold rounded-full">
                 Most Popular
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Explorer</h3>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Pro</h3>
               <p className="mb-1">
-                <span className="text-4xl font-bold text-gray-900">$12.50</span>
+                <span className="text-4xl font-bold text-gray-900">$9.99</span>
                 <span className="text-base text-gray-500 ml-1">USD/month</span>
               </p>
               <p className="text-xs text-[var(--accent-teal)] font-medium mb-5">
-                Students with their education email get an extra 20% off all
-                plans!
+                Students get 20% off with education email!
               </p>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start gap-2.5">
@@ -755,7 +801,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Unlimited journals & chats
+                    Unlimited tasks & goals
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -771,7 +817,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Unlimited image generation
+                    Advanced timer modes
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -787,7 +833,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    3 video generations / day
+                    Detailed analytics & insights
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -803,7 +849,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    5 notes transcriptions / day
+                    Priority support
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -819,31 +865,31 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    5 flashcard generations / day
+                    Export data & reports
                   </span>
                 </li>
               </ul>
               <Link
-                href="/signup"
-                className="block text-center w-full py-2.5 rounded-lg bg-[var(--accent-teal)] text-white text-sm font-medium hover:bg-[var(--accent-teal-light)] transition-all"
+                href="#"
+                className="block text-center w-full py-2.5 rounded-lg bg-gray-300 text-white text-sm font-medium cursor-not-allowed opacity-70 pointer-events-none"
+                aria-disabled
               >
-                Get Explorer
+                Unavailable
               </Link>
             </div>
 
-            {/* Scholar Plan */}
+            {/* Team Plan */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 text-left">
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Scholar</h3>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Team</h3>
               <p className="mb-1">
-                <span className="text-4xl font-bold text-gray-900">$20.83</span>
+                <span className="text-4xl font-bold text-gray-900">$19.99</span>
                 <span className="text-base text-gray-500 ml-1">USD/month</span>
               </p>
               <p className="text-xs text-[var(--accent-teal)] font-medium mb-5">
-                Students with their education email get an extra 20% off all
-                plans!
+                Perfect for teams and organizations
               </p>
               <p className="text-sm font-semibold text-gray-900 mb-3">
-                Everything in Explorer +
+                Everything in Pro +
               </p>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start gap-2.5">
@@ -859,7 +905,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Access to the real-time, proactive AI tutor
+                    Team collaboration features
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -875,7 +921,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Unlimited image and video generations
+                    Shared goals & projects
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -891,7 +937,7 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Unlimited notes transcriptions
+                    Team leaderboards & stats
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -907,15 +953,32 @@ export default function Home() {
                     />
                   </svg>
                   <span className="text-gray-600 text-sm">
-                    Unlimited flashcards and practice problems
+                    Admin dashboard & controls
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <svg
+                    className="w-4 h-4 text-[var(--accent-teal)] mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-gray-600 text-sm">
+                    Custom integrations & API
                   </span>
                 </li>
               </ul>
               <Link
-                href="/signup"
-                className="block text-center w-full py-2.5 rounded-lg border-2 border-gray-200 text-gray-900 text-sm font-medium hover:border-gray-300 hover:bg-gray-50 transition-all"
+                href="#"
+                className="block text-center w-full py-2.5 rounded-lg border-2 border-gray-200 text-gray-400 text-sm font-medium cursor-not-allowed opacity-70 pointer-events-none"
+                aria-disabled
               >
-                Get Scholar
+                Unavailable
               </Link>
             </div>
           </div>
@@ -930,18 +993,18 @@ export default function Home() {
               Frequently Asked Questions
             </h2>
             <p className="text-lg text-gray-600">
-              Everything you need to know about Zinco
+              Everything you need to know about Planly
             </p>
           </div>
 
           <div className="space-y-4">
             {[
               {
-                q: "Is Zinco really free?",
+                q: "Is Planly really free?",
                 a: "Yes! We offer a generous free plan with essential features. You can upgrade anytime to unlock advanced capabilities.",
               },
               {
-                q: "Can I use Zinco on multiple devices?",
+                q: "Can I use Planly on multiple devices?",
                 a: "Absolutely! Your data syncs across all your devices in real-time. Work from anywhere, anytime.",
               },
               {

@@ -5,7 +5,7 @@ import { generateTokenEdge, checkRateLimit, getSecurityHeaders } from '@/lib/aut
 export async function POST(request: NextRequest) {
   try {
     // Get client IP for rate limiting
-    const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
 
     // Check rate limiting (10 attempts per 15 minutes per IP)
     if (!checkRateLimit(clientIP, 10, 15 * 60 * 1000)) {

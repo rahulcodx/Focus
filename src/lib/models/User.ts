@@ -25,6 +25,8 @@ export interface UserDocument {
     totalFocusTime: number;
     level: number;
     points: number;
+    liveTodayFocusTime?: number; // transient accumulation for today (seconds)
+    liveTodayDate?: string; // YYYY-MM-DD of last live update
   };
 }
 
@@ -260,7 +262,7 @@ export class UserModel {
         { _id: new ObjectId(userId) },
         {
           $set: {
-            'stats': statsUpdate,
+            'stats': statsUpdate as any,
             updatedAt: new Date()
           }
         }

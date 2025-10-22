@@ -62,7 +62,7 @@ export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string 
       expiresIn: JWT_EXPIRES_IN,
       issuer: 'planly-app',
       audience: 'planly-users',
-    });
+    } as jwt.SignOptions);
   } catch (error) {
     console.error('Error generating JWT token:', error);
     throw new Error('Failed to generate authentication token');
@@ -165,7 +165,7 @@ export function validatePassword(password: string): {
 }
 
 export function validateName(name: string): boolean {
-  return name && name.trim().length >= 2 && name.trim().length <= 50;
+  return Boolean(name && name.trim().length >= 2 && name.trim().length <= 50);
 }
 
 // Rate limiting helper

@@ -1,4 +1,4 @@
-# 🎯 Zinco - Your Productivity Hub
+# 🎯 Planly - Your Productivity Hub
 
 A beautiful, modern productivity application built with Next.js, featuring a clean paper-cutting design aesthetic.
 
@@ -59,7 +59,7 @@ Complete productivity workspace with:
 1. Clone the repository:
 \`\`\`bash
 git clone <your-repo-url>
-cd Zinco
+cd Planly
 \`\`\`
 
 2. Install dependencies:
@@ -84,7 +84,7 @@ npm start
 ## 📁 Project Structure
 
 \`\`\`
-Zinco/
+Planly/
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx          # Homepage/Landing page
@@ -232,4 +232,28 @@ Created with ❤️ for productivity enthusiasts
 7. **Compete**: Check your rank on the leaderboard
 8. **Stay Focused**: Use Focus Mode to block distractions
 
-Enjoy your productivity journey with Zinco! 🚀
+Enjoy your productivity journey with Planly! 🚀
+
+## Deploy to Vercel
+
+1. Create a Vercel account and install the Vercel CLI:
+```bash
+npm i -g vercel
+```
+2. Add environment variables in your Vercel project (same as your local .env.local):
+- MONGODB_URI
+- MONGODB_DB_NAME
+- JWT_SECRET
+
+3. From the project root, deploy:
+```bash
+vercel
+```
+Follow the prompts to create/link the project.
+
+4. For production deployments:
+```bash
+vercel --prod
+```
+
+This repo ships with `vercel.json` configured for the Next.js app and API routes.

@@ -14,6 +14,7 @@ export default function Timer({ compact = false }: TimerProps) {
   const [mode, setMode] = useState<"pomodoro" | "short" | "long" | "custom">("pomodoro");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [stats, setStats] = useState({ todaySessions: 0, totalMinutes: 0, thisWeekSessions: 0 });
+  const [baselineTotalMinutes, setBaselineTotalMinutes] = useState(0);
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customMinutes, setCustomMinutes] = useState(25);
 
@@ -31,11 +32,13 @@ export default function Timer({ compact = false }: TimerProps) {
         const totalSeconds = response.data.overview.totalFocusTime || 0;
         const totalMinutes = Math.floor(totalSeconds / 60);
         
-        setStats({
+        const newStats = {
           todaySessions: response.data.today.sessions || 0,
           totalMinutes: totalMinutes,
           thisWeekSessions: response.data.overview.thisWeekSessions || 0
-        });
+        };
+        setStats(newStats);
+        setBaselineTotalMinutes(newStats.totalMinutes);
         console.log('Stats updated:', { totalMinutes, todaySessions: response.data.today.sessions, thisWeekSessions: response.data.overview.thisWeekSessions });
       } else {
         console.error('Failed to fetch stats:', response);
@@ -116,6 +119,7 @@ export default function Timer({ compact = false }: TimerProps) {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    let heartbeat: NodeJS.Timeout;
 
     if (isRunning && (minutes > 0 || seconds > 0)) {
       interval = setInterval(() => {
@@ -132,9 +136,23 @@ export default function Timer({ compact = false }: TimerProps) {
           setSeconds(seconds - 1);
         }
       }, 1000);
+
+      // Heartbeat to persist focus time to DB every 60s
+      heartbeat = setInterval(async () => {
+        try {
+          await apiPost('/api/user/increment-focus', { seconds: 60 });
+          // Optimistically reflect in UI without full refetch
+          setBaselineTotalMinutes((prev) => prev + 1);
+        } catch (err) {
+          console.error('Heartbeat focus increment failed:', err);
+        }
+      }, 60000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (heartbeat) clearInterval(heartbeat);
+    };
   }, [isRunning, minutes, seconds, completeSession]);
 
   const resetTimer = (newMode: typeof mode) => {
@@ -158,6 +176,8 @@ export default function Timer({ compact = false }: TimerProps) {
   const toggleTimer = () => {
     if (!isRunning) {
       startSession();
+      // capture baseline so we can show live-added minutes during this run
+      setBaselineTotalMinutes(stats.totalMinutes);
     }
     setIsRunning(!isRunning);
   };
@@ -173,8 +193,14 @@ export default function Timer({ compact = false }: TimerProps) {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const progress =
-    ((presets[mode] - (minutes * 60 + seconds)) / presets[mode]) * 100;
+  const remainingSeconds = minutes * 60 + seconds;
+  const elapsedThisSessionSeconds = Math.max(0, presets[mode] - remainingSeconds);
+  const liveAddedMinutes = isRunning ? Math.floor(elapsedThisSessionSeconds / 60) : 0;
+  const displayTotalMinutes = baselineTotalMinutes + liveAddedMinutes;
+  const displayThisWeekSessions = stats.thisWeekSessions + (isRunning && seconds === 0 && minutes % 60 === 0 ? 0 : 0); // keep sessions day/week server-driven
+  const displayTodaySessions = stats.todaySessions; // sessions counted by completed sessions
+
+  const progress = (elapsedThisSessionSeconds / presets[mode]) * 100;
 
   if (compact) {
     return (
@@ -446,15 +472,15 @@ export default function Timer({ compact = false }: TimerProps) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mt-8">
         <div className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold text-black">{stats.todaySessions}</p>
+          <p className="text-2xl font-bold text-black">{displayTodaySessions}</p>
           <p className="text-sm text-black">Today&apos;s Sessions</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold text-black">{formatTimeDisplay(stats.totalMinutes)}</p>
+          <p className="text-2xl font-bold text-black">{formatTimeDisplay(displayTotalMinutes)}</p>
           <p className="text-sm text-black">Total Time</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 text-center shadow-sm">
-          <p className="text-2xl font-bold text-black">{stats.thisWeekSessions}</p>
+          <p className="text-2xl font-bold text-black">{displayThisWeekSessions}</p>
           <p className="text-sm text-black">This Week</p>
         </div>
       </div>

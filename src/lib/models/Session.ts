@@ -272,6 +272,7 @@ export class SessionModel {
     totalFocusTime: number;
     todayFocusTime: number;
     thisWeekSessions: number;
+    thisWeekFocusTime: number;
     averageSessionLength: number;
     currentStreak: number;
     longestStreak: number;
@@ -286,6 +287,7 @@ export class SessionModel {
           totalFocusTime: 0,
           todayFocusTime: 0,
           thisWeekSessions: 0,
+          thisWeekFocusTime: 0,
           averageSessionLength: 0,
           currentStreak: 0,
           longestStreak: 0
@@ -304,6 +306,7 @@ export class SessionModel {
         totalStats,
         todayStats,
         weekStats,
+        weekTimeStats,
         currentStreak,
         longestStreak
       ] = await Promise.all([
@@ -331,18 +334,30 @@ export class SessionModel {
           completed: true,
           startedAt: { $gte: weekStart }
         }),
+        collection.aggregate([
+          {
+            $match: {
+              userId: new ObjectId(userId),
+              completed: true,
+              startedAt: { $gte: weekStart }
+            }
+          },
+          { $group: { _id: null, thisWeekFocusTime: { $sum: '$duration' } } }
+        ]).toArray(),
         this.getCurrentStreak(userId),
         this.getLongestStreak(userId)
       ]);
 
       const totalData = totalStats[0] || {};
       const todayData = todayStats[0] || {};
+      const weekTimeData = weekTimeStats[0] || {};
 
       return {
         totalSessions: totalData.totalSessions || 0,
         totalFocusTime: totalData.totalFocusTime || 0,
         todayFocusTime: todayData.todayFocusTime || 0,
         thisWeekSessions: weekStats,
+        thisWeekFocusTime: weekTimeData.thisWeekFocusTime || 0,
         averageSessionLength: Math.round(totalData.averageSessionLength || 0),
         currentStreak,
         longestStreak
@@ -354,6 +369,7 @@ export class SessionModel {
         totalFocusTime: 0,
         todayFocusTime: 0,
         thisWeekSessions: 0,
+        thisWeekFocusTime: 0,
         averageSessionLength: 0,
         currentStreak: 0,
         longestStreak: 0

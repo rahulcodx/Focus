@@ -24,14 +24,16 @@ export async function GET(request: NextRequest) {
       goalStats,
       noteStats,
       activityData,
-      leaderboardData
+      leaderboardData,
+      user
     ] = await Promise.all([
       TaskModel.getStats(userId),
       SessionModel.getStats(userId),
       GoalModel.getStats(userId),
       NoteModel.getStats(userId),
       SessionModel.getActivityData(userId, 49), // 7 weeks for heatmap
-      UserModel.getLeaderboard(10) // Top 10 users
+      UserModel.getLeaderboard(10), // Top 10 users
+      UserModel.findById(userId)
     ]);
 
     // Calculate user ranking
@@ -44,14 +46,21 @@ export async function GET(request: NextRequest) {
       return hours > 0 ? `${hours}.${Math.floor(minutes/6)}h` : `${minutes}m`;
     };
 
+    const liveTodaySeconds = (user?.stats as any)?.liveTodayFocusTime || 0;
+    const liveDate = (user?.stats as any)?.liveTodayDate;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayFocusWithLive = liveDate === todayStr 
+      ? (sessionStats.todayFocusTime || 0) + liveTodaySeconds 
+      : sessionStats.todayFocusTime || 0;
+
     const dashboardStats = {
       // Today's key metrics
       today: {
         tasksCompleted: taskStats.todayCompleted,
         totalTasks: taskStats.pending + taskStats.completed,
-        focusTime: sessionStats.todayFocusTime,
-        focusTimeFormatted: formatTime(sessionStats.todayFocusTime),
-        sessions: sessionStats.totalSessions > 0 ? Math.floor(sessionStats.todayFocusTime / sessionStats.averageSessionLength) : 0
+        focusTime: todayFocusWithLive,
+        focusTimeFormatted: formatTime(todayFocusWithLive),
+        sessions: sessionStats.totalSessions > 0 ? Math.floor(todayFocusWithLive / (sessionStats.averageSessionLength || 1)) : 0
       },
 
       // Overall statistics
@@ -63,10 +72,15 @@ export async function GET(request: NextRequest) {
         completionRate: taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0,
         
         totalSessions: sessionStats.totalSessions,
-        totalFocusTime: sessionStats.totalFocusTime,
+        // Prefer user's live totalFocusTime if present (from heartbeat), else aggregate sessions
+        totalFocusTime: Math.max(sessionStats.totalFocusTime, user?.stats?.totalFocusTime ?? 0),
         totalFocusTimeFormatted: formatTime(sessionStats.totalFocusTime),
         averageSessionLength: sessionStats.averageSessionLength,
         thisWeekSessions: sessionStats.thisWeekSessions,
+        thisWeekFocusTime: sessionStats.thisWeekFocusTime,
+        // Points and level
+        points: user?.stats?.points ?? 0,
+        level: user?.stats?.level ?? 1,
         
         totalGoals: goalStats.total,
         completedGoals: goalStats.completed,

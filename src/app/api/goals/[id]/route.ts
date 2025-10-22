@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoalModel } from '@/lib/models/Goal';
 import { getSecurityHeaders } from '@/lib/auth-edge';
 import { getUserIdFromRequest } from '@/lib/auth-helpers';
+import { UserModel } from '@/lib/models/User';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await getUserIdFromRequest(request);
@@ -28,9 +29,29 @@ export async function PUT(
       updateData.completed = completed;
     }
 
-    const result = await GoalModel.updateById(userId, params.id, updateData);
+    const resolvedParams = await params;
+    const result = await GoalModel.updateById(userId, resolvedParams.id, updateData);
 
     if (result.success) {
+      // Award points when a goal is newly completed
+      try {
+        if (result.goal?.completed === true) {
+          const user = await UserModel.findById(userId);
+          if (user) {
+            const currentPoints = user.stats?.points ?? 0;
+            const newPoints = currentPoints + 100; // award 100 pts per goal completed
+            const computedLevel = Math.max(1, Math.floor(newPoints / 500) + 1);
+            await UserModel.updateStats(userId, {
+              ...user.stats,
+              points: newPoints,
+              level: computedLevel,
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to award goal completion points:', e);
+      }
+
       return NextResponse.json(
         { success: true, data: result.goal },
         { headers: getSecurityHeaders() }
@@ -52,7 +73,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await getUserIdFromRequest(request);
@@ -63,7 +84,8 @@ export async function DELETE(
       );
     }
 
-    const result = await GoalModel.deleteById(userId, params.id);
+    const resolvedParams = await params;
+    const result = await GoalModel.deleteById(userId, resolvedParams.id);
 
     if (result) {
       return NextResponse.json(

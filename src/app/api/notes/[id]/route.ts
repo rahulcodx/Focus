@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { NoteModel } from '@/lib/models/Note';
 import { getSecurityHeaders } from '@/lib/auth-edge';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
@@ -17,7 +17,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (content !== undefined) updateData.content = content;
     if (color !== undefined) updateData.color = color;
 
-    const result = await NoteModel.updateById(userId, params.id, updateData);
+    const resolvedParams = await params;
+    const result = await NoteModel.updateById(userId, resolvedParams.id, updateData);
 
     if (result.success) {
       return NextResponse.json({ success: true, data: result.note }, { headers: getSecurityHeaders() });
@@ -30,14 +31,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401, headers: getSecurityHeaders() });
     }
 
-    const success = await NoteModel.deleteById(userId, params.id);
+    const resolvedParams = await params;
+    const success = await NoteModel.deleteById(userId, resolvedParams.id);
 
     if (success) {
       return NextResponse.json({ success: true, message: 'Note deleted successfully' }, { headers: getSecurityHeaders() });

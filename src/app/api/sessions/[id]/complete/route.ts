@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionModel } from '@/lib/models/Session';
 import { getSecurityHeaders } from '@/lib/auth-edge';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = request.headers.get('x-user-id');
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401, headers: getSecurityHeaders() });
     }
 
-    const result = await SessionModel.complete(userId, params.id);
+    const resolvedParams = await params;
+    const result = await SessionModel.complete(userId, resolvedParams.id);
 
     if (result.success) {
       return NextResponse.json({ success: true, data: result.session }, { headers: getSecurityHeaders() });
