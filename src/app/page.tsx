@@ -34,10 +34,10 @@ export default function Home() {
           <Link href="/" className="flex items-center gap-2 group">
             <img
               src="/logo.svg"
-              alt="Planly"
+              alt="Focus"
               className="w-7 h-7 transition-transform group-hover:scale-105"
             />
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
@@ -622,7 +622,7 @@ export default function Home() {
               {
                 name: "Sarah Chen",
                 role: "Product Designer",
-                text: "Planly has completely transformed how I manage my day. The timer feature is a game-changer!",
+                text: "Focus has completely transformed how I manage my day. The timer feature is a game-changer!",
                 avatar: (
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-semibold">
                     SC
@@ -993,18 +993,18 @@ export default function Home() {
               Frequently Asked Questions
             </h2>
             <p className="text-lg text-gray-600">
-              Everything you need to know about Planly
+              Everything you need to know about Focus
             </p>
           </div>
 
           <div className="space-y-4">
             {[
               {
-                q: "Is Planly really free?",
+                q: "Is Focus really free?",
                 a: "Yes! We offer a generous free plan with essential features. You can upgrade anytime to unlock advanced capabilities.",
               },
               {
-                q: "Can I use Planly on multiple devices?",
+                q: "Can I use Focus on multiple devices?",
                 a: "Absolutely! Your data syncs across all your devices in real-time. Work from anywhere, anytime.",
               },
               {
@@ -1064,7 +1064,7 @@ export default function Home() {
                   Contact Us
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  Reach out to the Planly team here!
+                  Reach out to the Focus team here!
                 </p>
               </div>
 
@@ -1130,11 +1130,11 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

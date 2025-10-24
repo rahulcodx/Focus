@@ -21,7 +21,7 @@ export default function MissionPage() {
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -84,7 +84,7 @@ export default function MissionPage() {
               </h2>
               <div className="space-y-4 text-gray-700 leading-relaxed text-lg">
                 <p>
-                  At Planly, we believe that productivity isn't about working
+                  At Focus, we believe that productivity isn't about working
                   harder—it's about working smarter. Our mission is to create
                   tools that help individuals and teams unlock their full
                   potential by making productivity personal, intuitive, and
@@ -328,7 +328,7 @@ export default function MissionPage() {
               </h2>
               <p className="text-lg mb-6 text-gray-700">
                 Ready to transform your productivity and achieve your goals?
-                Start your journey with Planly today.
+                Start your journey with Focus today.
               </p>
               <Link
                 href="/signup"
@@ -347,11 +347,11 @@ export default function MissionPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

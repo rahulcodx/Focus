@@ -21,7 +21,7 @@ export default function CookiePolicyPage() {
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -91,7 +91,7 @@ export default function CookiePolicyPage() {
               </h3>
               <div className="space-y-4 text-gray-700 leading-relaxed">
                 <p>
-                  This Cookie Policy explains how Planly uses cookies and
+                  This Cookie Policy explains how Focus uses cookies and
                   similar technologies when you visit our website or use our
                   services.
                 </p>
@@ -115,7 +115,7 @@ export default function CookiePolicyPage() {
                   efficiently and to provide reporting information.
                 </p>
                 <p>
-                  Cookies set by the website owner (in this case, Planly) are
+                  Cookies set by the website owner (in this case, Focus) are
                   called "first party cookies." Cookies set by parties other
                   than the website owner are called "third party cookies."
                 </p>
@@ -305,10 +305,10 @@ export default function CookiePolicyPage() {
                 </p>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
                   <p className="font-medium text-black mb-2">Email:</p>
-                  <p className="text-teal-600">cookies@planly.com</p>
+                  <p className="text-teal-600">cookies@Focus.com</p>
                   <p className="font-medium text-black mt-4 mb-2">Address:</p>
                   <p>
-                    Planly Inc.
+                    Focus Inc.
                     <br />
                     San Francisco, CA
                   </p>
@@ -325,11 +325,11 @@ export default function CookiePolicyPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

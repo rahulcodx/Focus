@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -91,13 +91,13 @@ export default function PrivacyPolicyPage() {
               </h3>
               <div className="space-y-4 text-gray-700 leading-relaxed">
                 <p>
-                  Planly is a provider of AI-assisted productivity tools and
+                  Focus is a provider of AI-assisted productivity tools and
                   infrastructure.
                 </p>
                 <p>
                   We understand that you care about your personal privacy
                   interests, and we take that seriously. This Privacy Notice
-                  describes Planly's policies and practices regarding its
+                  describes Focus's policies and practices regarding its
                   collection and use of your personal data and sets forth your
                   privacy rights. We recognize that information privacy is an
                   ongoing responsibility and will update this Privacy Notice as
@@ -216,10 +216,10 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
                   <p className="font-medium text-black mb-2">Email:</p>
-                  <p className="text-teal-600">privacy@planly.com</p>
+                  <p className="text-teal-600">privacy@Focus.com</p>
                   <p className="font-medium text-black mt-4 mb-2">Address:</p>
                   <p>
-                    Planly Inc.
+                    Focus Inc.
                     <br />
                     San Francisco, CA
                   </p>
@@ -236,11 +236,11 @@ export default function PrivacyPolicyPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

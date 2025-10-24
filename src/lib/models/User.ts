@@ -4,6 +4,7 @@ export interface User {
   name?: string;
   passwordHash: string;
   points?: number;
+  backgroundUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

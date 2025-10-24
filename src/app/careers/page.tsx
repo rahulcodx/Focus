@@ -21,7 +21,7 @@ export default function CareersPage() {
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -122,7 +122,7 @@ export default function CareersPage() {
               {/* Contact Button */}
               <div className="mt-6">
                 <Link
-                  href="mailto:careers@planly.com"
+                  href="mailto:careers@Focus.com"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
                 >
                   <svg
@@ -246,11 +246,11 @@ export default function CareersPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

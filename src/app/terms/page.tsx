@@ -21,7 +21,7 @@ export default function TermsOfServicePage() {
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-gray-900">Planly</span>
+            <span className="text-xl font-semibold text-gray-900">Focus</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
@@ -91,11 +91,11 @@ export default function TermsOfServicePage() {
               </h3>
               <div className="space-y-4 text-gray-700 leading-relaxed">
                 <p>
-                  Welcome to Planly. These Terms of Service ("Terms") govern
+                  Welcome to Focus. These Terms of Service ("Terms") govern
                   your use of our productivity platform and services.
                 </p>
                 <p>
-                  By accessing or using Planly, you agree to be bound by these
+                  By accessing or using Focus, you agree to be bound by these
                   Terms. If you disagree with any part of these terms, then you
                   may not access the service.
                 </p>
@@ -127,7 +127,7 @@ export default function TermsOfServicePage() {
                 Description of Service
               </h3>
               <div className="space-y-4 text-gray-700 leading-relaxed">
-                <p>Planly provides:</p>
+                <p>Focus provides:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Task management and organization tools</li>
                   <li>Time tracking and productivity analytics</li>
@@ -189,7 +189,7 @@ export default function TermsOfServicePage() {
                 <p>
                   The service and its original content, features, and
                   functionality are and will remain the exclusive property of
-                  Planly and its licensors.
+                  Focus and its licensors.
                 </p>
                 <p>
                   You retain ownership of any content you create using our
@@ -264,10 +264,10 @@ export default function TermsOfServicePage() {
                 </p>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
                   <p className="font-medium text-black mb-2">Email:</p>
-                  <p className="text-teal-600">legal@planly.com</p>
+                  <p className="text-teal-600">legal@Focus.com</p>
                   <p className="font-medium text-black mt-4 mb-2">Address:</p>
                   <p>
-                    Planly Inc.
+                    Focus Inc.
                     <br />
                     San Francisco, CA
                   </p>
@@ -284,11 +284,11 @@ export default function TermsOfServicePage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="Planly" className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Planly</span>
+                <img src="/logo.svg" alt="Focus" className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Focus</span>
               </div>
               <p className="text-xs text-gray-500">
-                © 2025 Planly, New Delhi, India
+                © 2025 Focus, New Delhi, India
               </p>
             </div>
             <div className="flex flex-col md:flex-row flex-wrap gap-x-4 gap-y-3">

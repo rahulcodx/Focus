@@ -30,7 +30,7 @@ export default function SignupPage() {
 
       if (data.success) {
         // Store user data in localStorage
-        localStorage.setItem("planly_user", JSON.stringify(data.user));
+        localStorage.setItem("Focus_user", JSON.stringify(data.user));
         localStorage.setItem("auth-token", data.token);
 
         // Also set as cookie so middleware can access it
@@ -78,7 +78,7 @@ export default function SignupPage() {
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                   </svg>
                 </div>
-                <span className="text-xl font-bold text-black">Planly</span>
+                <span className="text-xl font-bold text-black">Focus</span>
               </Link>
             </div>
 
@@ -330,7 +330,7 @@ export default function SignupPage() {
                   </svg>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-black">Planly</span>
+              <span className="text-2xl font-bold text-black">Focus</span>
             </Link>
 
             {/* Hero Text */}
@@ -342,7 +342,7 @@ export default function SignupPage() {
 
             <p className="text-base text-gray-600 mb-6 leading-relaxed">
               Join thousands of users who have transformed their daily routines
-              and achieved their goals with Planly.
+              and achieved their goals with Focus.
             </p>
 
             {/* Feature Points */}

@@ -9,7 +9,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Planly - Your Productivity Hub",
+  title: "Focus - Your Productivity Hub",
   description:
     "Boost your productivity with powerful tools for tasks, time tracking, streaks, and more.",
 };
