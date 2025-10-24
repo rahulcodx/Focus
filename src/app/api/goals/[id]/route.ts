@@ -1,120 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { GoalModel } from '@/lib/models/Goal';
-import { getSecurityHeaders } from '@/lib/auth-edge';
-import { getUserIdFromRequest } from '@/lib/auth-helpers';
-import { UserModel } from '@/lib/models/User';
+import { NextResponse } from 'next/server';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const userId = await getUserIdFromRequest(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401, headers: getSecurityHeaders() }
-      );
-    }
-
-    const body = await request.json();
-    const { current, completed } = body;
-
-    // Build update object
-    const updateData: any = {};
-    if (current !== undefined) {
-      updateData.current = parseInt(current);
-    }
-    if (completed !== undefined) {
-      updateData.completed = completed;
-    }
-
-    const resolvedParams = await params;
-    const result = await GoalModel.updateById(userId, resolvedParams.id, updateData);
-
-    if (result.success) {
-      // Award points when a goal is newly completed
-      try {
-        if (result.goal?.completed === true) {
-          const user = await UserModel.findById(userId);
-          if (user) {
-            const currentPoints = user.stats?.points ?? 0;
-            const newPoints = currentPoints + 100; // award 100 pts per goal completed
-            const computedLevel = Math.max(1, Math.floor(newPoints / 500) + 1);
-            await UserModel.updateStats(userId, {
-              ...user.stats,
-              points: newPoints,
-              level: computedLevel,
-            });
-          }
-        }
-      } catch (e) {
-        console.error('Failed to award goal completion points:', e);
-      }
-
-      return NextResponse.json(
-        { success: true, data: result.goal },
-        { headers: getSecurityHeaders() }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: result.error },
-      { status: 400, headers: getSecurityHeaders() }
-    );
-  } catch (error) {
-    console.error('Error updating goal:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500, headers: getSecurityHeaders() }
-    );
-  }
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  return NextResponse.json({ message: 'API endpoint not implemented' }, { status: 501 });
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const userId = await getUserIdFromRequest(request);
-    if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Authentication required' },
-        { status: 401, headers: getSecurityHeaders() }
-      );
-    }
-
-    const resolvedParams = await params;
-    const result = await GoalModel.deleteById(userId, resolvedParams.id);
-
-    if (result) {
-      return NextResponse.json(
-        { success: true, message: 'Goal deleted successfully' },
-        { headers: getSecurityHeaders() }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete goal' },
-      { status: 400, headers: getSecurityHeaders() }
-    );
-  } catch (error) {
-    console.error('Error deleting goal:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500, headers: getSecurityHeaders() }
-    );
-  }
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  return NextResponse.json({ message: 'API endpoint not implemented' }, { status: 501 });
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      ...getSecurityHeaders(),
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  return NextResponse.json({ message: 'API endpoint not implemented' }, { status: 501 });
 }

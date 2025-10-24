@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Avion Medium';
+  src: url('/fonts/Avion-Medium.otf') format('opentype'); /* Adjust the filename if it's different */
+  font-weight: 500;
+  font-style: normal;
+}
+
 @import "tailwindcss";
 
 :root {
