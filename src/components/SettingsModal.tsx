@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export default function SettingsModal({ isOpen, onClose, onBackgroundChange, cur
   const [activeTab, setActiveTab] = useState('custom');
   const [customUrl, setCustomUrl] = useState('');
   const [previewUrl, setPreviewUrl] = useState(currentBackground);
+  const { logout } = useAuth();
 
   const backgrounds = {
     anime: [
@@ -127,15 +129,26 @@ export default function SettingsModal({ isOpen, onClose, onBackgroundChange, cur
       <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 w-96 max-h-96 overflow-y-auto custom-scrollbar">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-white text-lg font-bold">Settings</h3>
-          <button
-            onClick={onClose}
-            className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                logout();
+                onClose();
+              }}
+              className="px-3 py-1 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer text-sm"
+            >
+              Logout
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
