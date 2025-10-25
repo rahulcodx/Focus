@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     }
 
     const token = authHeader.substring(7);
-    const payload = verifyAuthToken(token);
+    const payload = await verifyAuthToken(token);
     const usersCol = await getUsersCollection();
     const user = await usersCol.findOne({ _id: new ObjectId(payload.userId) });
 

@@ -19,17 +19,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      // Fetch user data if authenticated
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
+    const checkAuth = async () => {
+      const authenticated = await isAuthenticated();
+      if (authenticated) {
+        // Fetch user data if authenticated
+        await fetchUser();
+      } else {
+        setLoading(false);
+      }
+    };
+    checkAuth();
   }, []);
 
   const fetchUser = async () => {
     try {
-      const response = await apiRequest('/api/user/me'); // Assuming we create this endpoint
+      const response = await apiRequest('/api/user/me');
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
@@ -38,6 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Error fetching user:', error);
+      // Don't remove token on network errors, might be temporary
+      if (error instanceof TypeError) {
+        // Network error, keep token for retry
+        setLoading(false);
+        return;
+      }
       removeStoredToken();
     } finally {
       setLoading(false);

@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSyllabusCollection } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { subject, totalChapters, completedChapters } = body;
 
     const syllabusCollection = await getSyllabusCollection();
     const result = await syllabusCollection.updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           ...(subject !== undefined && { subject }),
@@ -31,10 +32,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const syllabusCollection = await getSyllabusCollection();
-    const result = await syllabusCollection.deleteOne({ _id: new ObjectId(params.id) });
+    const result = await syllabusCollection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Syllabus item not found' }, { status: 404 });

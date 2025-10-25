@@ -25,11 +25,11 @@ export function removeStoredToken(): void {
   document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
 
-export function isAuthenticated(): boolean {
+export async function isAuthenticated(): Promise<boolean> {
   const token = getStoredToken();
   if (!token) return false;
   try {
-    verifyAuthToken(token);
+    await verifyAuthToken(token);
     return true;
   } catch {
     return false;

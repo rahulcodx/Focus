@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStudyLogsCollection } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { subject, duration, date } = body;
 
     const studyLogsCollection = await getStudyLogsCollection();
     const result = await studyLogsCollection.updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           ...(subject !== undefined && { subject }),
@@ -31,10 +32,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const studyLogsCollection = await getStudyLogsCollection();
-    const result = await studyLogsCollection.deleteOne({ _id: new ObjectId(params.id) });
+    const result = await studyLogsCollection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Study log not found' }, { status: 404 });

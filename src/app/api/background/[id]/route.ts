@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getBackgroundsCollection } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { url, type } = body;
 
     const backgroundsCollection = await getBackgroundsCollection();
     const result = await backgroundsCollection.updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           ...(url !== undefined && { url }),
@@ -30,10 +31,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const backgroundsCollection = await getBackgroundsCollection();
-    const result = await backgroundsCollection.deleteOne({ _id: new ObjectId(params.id) });
+    const result = await backgroundsCollection.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: 'Background not found' }, { status: 404 });
