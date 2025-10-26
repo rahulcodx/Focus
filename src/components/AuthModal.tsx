@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,10 +10,10 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login, signup } = useAuth();
 
@@ -21,7 +21,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     const result = isLogin
@@ -33,21 +33,44 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (result.success) {
       onClose();
     } else {
-      setError(result.error || 'An error occurred');
+      setError(result.error || "An error occurred");
     }
   };
 
   return (
     <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
       <div className="bg-white/20 backdrop-blur-lg rounded-lg p-8 w-full max-w-md border border-white/30 shadow-2xl">
-        <div className="flex justify-center items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">{isLogin ? 'Login' : 'Sign Up'}</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-white">
+            {isLogin ? "Login" : "Sign Up"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <div className="mb-4">
-              <label className="block text-white text-sm font-bold mb-2" htmlFor="name">
+              <label
+                className="block text-white text-sm font-bold mb-2"
+                htmlFor="name"
+              >
                 Name (optional)
               </label>
               <input
@@ -62,7 +85,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           )}
 
           <div className="mb-4">
-            <label className="block text-white text-sm font-bold mb-2" htmlFor="email">
+            <label
+              className="block text-white text-sm font-bold mb-2"
+              htmlFor="email"
+            >
               Email
             </label>
             <input
@@ -77,7 +103,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
 
           <div className="mb-6">
-            <label className="block text-white text-sm font-bold mb-2" htmlFor="password">
+            <label
+              className="block text-white text-sm font-bold mb-2"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
@@ -98,7 +127,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             disabled={loading}
             className="w-full bg-teal-500 text-white py-2 px-4 rounded hover:bg-teal-600 disabled:opacity-50 cursor-pointer transition-all hover:shadow-lg"
           >
-            {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
+            {loading ? "Loading..." : isLogin ? "Login" : "Sign Up"}
           </button>
         </form>
 
@@ -107,7 +136,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             onClick={() => setIsLogin(!isLogin)}
             className="text-teal-400 hover:text-teal-300 cursor-pointer transition-all hover:underline"
           >
-            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
+            {isLogin
+              ? "Don't have an account? Sign Up"
+              : "Already have an account? Login"}
           </button>
         </div>
       </div>
