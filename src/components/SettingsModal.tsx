@@ -9,6 +9,10 @@ interface SettingsModalProps {
   onBackgroundChange: (url: string) => void;
   currentBackground: string;
   onOpenAuth?: () => void;
+  autoSwitch: boolean;
+  setAutoSwitch: (val: boolean) => void;
+  playSound: boolean;
+  setPlaySound: (val: boolean) => void;
 }
 
 export default function SettingsModal({
@@ -17,8 +21,12 @@ export default function SettingsModal({
   onBackgroundChange,
   currentBackground,
   onOpenAuth,
+  autoSwitch,
+  setAutoSwitch,
+  playSound,
+  setPlaySound,
 }: SettingsModalProps) {
-  const [activeTab, setActiveTab] = useState("custom");
+  const [activeTab, setActiveTab] = useState("timer");
   const [customUrl, setCustomUrl] = useState("");
   const [previewUrl, setPreviewUrl] = useState(currentBackground);
   const { user, logout } = useAuth();
@@ -358,29 +366,71 @@ export default function SettingsModal({
             <button
               key={category}
               onClick={() => setActiveTab(category)}
-              className={`flex-1 py-2 px-2 text-sm font-medium transition-all cursor-pointer rounded-2xl mx-1 ${
-                activeTab === category
+              className={`flex-1 py-2 px-2 text-sm font-medium transition-all cursor-pointer rounded-2xl mx-1 ${activeTab === category
                   ? "bg-teal-500/80 text-white"
                   : "bg-white/10 text-white/70 hover:bg-white/20"
-              }`}
+                }`}
             >
               {category.charAt(0).toUpperCase() + category.slice(1)}
             </button>
           ))}
           <button
-            onClick={() => setActiveTab("custom")}
-            className={`flex-1 py-2 px-2 text-sm font-medium transition-all cursor-pointer rounded-2xl mx-1 ${
-              activeTab === "custom"
+            onClick={() => setActiveTab("timer")}
+            className={`flex-1 py-2 px-2 text-sm font-medium transition-all cursor-pointer rounded-2xl mx-1 ${activeTab === "timer"
                 ? "bg-teal-500/80 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20"
-            }`}
+              }`}
+          >
+            Timer
+          </button>
+          <button
+            onClick={() => setActiveTab("custom")}
+            className={`flex-1 py-2 px-2 text-sm font-medium transition-all cursor-pointer rounded-2xl mx-1 ${activeTab === "custom"
+                ? "bg-teal-500/80 text-white"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+              }`}
           >
             Custom
           </button>
         </div>
 
         {/* Content */}
-        {activeTab === "custom" ? (
+        {activeTab === "timer" ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+              <div>
+                <h4 className="text-white font-medium">Auto-switch to Break</h4>
+                <p className="text-white/50 text-xs">Automatically start next session</p>
+              </div>
+              <button
+                onClick={() => setAutoSwitch(!autoSwitch)}
+                className={`w-12 h-6 rounded-full transition-all relative ${autoSwitch ? "bg-teal-500" : "bg-white/10"
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoSwitch ? "left-7" : "left-1"
+                    }`}
+                />
+              </button>
+            </div>
+            <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+              <div>
+                <h4 className="text-white font-medium">Notification Sound</h4>
+                <p className="text-white/50 text-xs">Play sound when timer ends</p>
+              </div>
+              <button
+                onClick={() => setPlaySound(!playSound)}
+                className={`w-12 h-6 rounded-full transition-all relative ${playSound ? "bg-teal-500" : "bg-white/10"
+                  }`}
+              >
+                <div
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${playSound ? "left-7" : "left-1"
+                    }`}
+                />
+              </button>
+            </div>
+          </div>
+        ) : activeTab === "custom" ? (
           <div>
             <div className="mb-3">
               <label className="text-white text-sm font-medium mb-1 block">

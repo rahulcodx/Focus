@@ -103,35 +103,34 @@ export default function SoundModal({ isOpen, onClose }: SoundModalProps) {
       try {
         const audio = new Audio(soundEffect.file);
         audio.loop = true;
-        audio.volume = 0.4; // Slightly lower volume for ambient sounds
+        audio.volume = 0.4;
 
-        // Handle successful load and start playing
+        // CRITICAL: Set the ref immediately before starting to play
+        currentAudioRef.current = audio;
+
+        // Handle successful load
         audio.addEventListener('canplaythrough', () => {
-          setCurrentSound(soundId);
-          setIsPlaying(true);
+          // If the user has already switched to another sound, don't update state
+          if (currentAudioRef.current === audio) {
+            setCurrentSound(soundId);
+            setIsPlaying(true);
+          }
         });
 
         audio.addEventListener('error', (error) => {
           console.error('Error loading sound:', soundEffect.file, error);
-          setCurrentSound(null);
-          setIsPlaying(false);
-          // Show user-friendly error for missing files
-          if (error.target && (error.target as HTMLAudioElement).error) {
-            console.error('Audio error code:', (error.target as HTMLAudioElement).error?.code);
+          if (currentAudioRef.current === audio) {
+            setCurrentSound(null);
+            setIsPlaying(false);
           }
         });
 
-        audio.addEventListener('ended', () => {
-          // This shouldn't happen with loop=true, but just in case
-          console.log('Audio ended unexpectedly:', soundEffect.file);
-        });
-
-        audio.play().then(() => {
-          currentAudioRef.current = audio;
-        }).catch(error => {
+        audio.play().catch(error => {
           console.error('Error playing sound:', error);
-          setCurrentSound(null);
-          setIsPlaying(false);
+          if (currentAudioRef.current === audio) {
+            setCurrentSound(null);
+            setIsPlaying(false);
+          }
         });
       } catch (error) {
         console.error('Error creating audio:', error);
@@ -229,19 +228,18 @@ export default function SoundModal({ isOpen, onClose }: SoundModalProps) {
             <button
               key={sound.id}
               onClick={() => toggleSound(sound.id)}
-              className={`sound-button flex flex-col items-center gap-2 p-3 rounded-lg font-medium transition-all cursor-pointer bg-white/10 text-white focus:outline-none ${
-                currentSound === sound.id && isPlaying
+              className={`sound-button flex flex-col items-center gap-2 p-3 rounded-lg font-medium transition-all cursor-pointer bg-white/10 text-white focus:outline-none ${currentSound === sound.id && isPlaying
                   ? 'active'
                   : ''
-              }`}
+                }`}
             >
               <span className="text-2xl">{sound.icon}</span>
               <span className="text-sm text-center">{sound.name}</span>
               {currentSound === sound.id && isPlaying && (
                 <div className="flex gap-1">
                   <div className="w-1 h-1 bg-white rounded-full animate-pulse"></div>
-                  <div className="w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <div className="w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-1 h-1 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               )}
             </button>

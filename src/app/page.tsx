@@ -7,6 +7,7 @@ import SoundModal from "../components/SoundModal";
 import MusicModal from "../components/MusicModal";
 import SettingsModal from "../components/SettingsModal";
 import AuthModal from "../components/AuthModal";
+import AnnouncementModal from "../components/AnnouncementModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
@@ -60,6 +61,25 @@ export default function Dashboard() {
     { subject: string; totalChapters: number; completedChapters: number }[]
   >([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [autoSwitch, setAutoSwitch] = useState(true);
+  const [playSound, setPlaySound] = useState(true);
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
+
+  useEffect(() => {
+    // Show announcement after a short delay on mount
+    const hasSeen = localStorage.getItem("hasSeenOSSAnnouncement");
+    if (!hasSeen) {
+      const timer = setTimeout(() => {
+        setShowAnnouncement(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleCloseAnnouncement = () => {
+    setShowAnnouncement(false);
+    localStorage.setItem("hasSeenOSSAnnouncement", "true");
+  };
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -86,6 +106,7 @@ export default function Dashboard() {
             if (time > 0) {
               return time - 1;
             } else {
+              // Timer reached zero
               setIsTimerRunning(false);
               return 0;
             }
@@ -97,6 +118,25 @@ export default function Dashboard() {
       if (interval) clearInterval(interval);
     };
   }, [isTimerRunning, isStudyLogsMode]);
+
+  // Handle timer completion
+  useEffect(() => {
+    if (timerTime === 0 && isTimerRunning && !isStudyLogsMode) {
+      if (playSound) {
+        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+        audio.play().catch(e => console.error("Audio play failed:", e));
+      }
+
+      if (autoSwitch) {
+        const nextMode = timerMode === "focus" ? "shortBreak" : "focus";
+        switchTimerMode(nextMode);
+        // Delay starting the next timer slightly to ensure state is updated
+        setTimeout(() => setIsTimerRunning(true), 100);
+      } else {
+        setIsTimerRunning(false);
+      }
+    }
+  }, [timerTime, isTimerRunning, isStudyLogsMode, autoSwitch, playSound, timerMode, focusDuration, shortBreakDuration, longBreakDuration]);
 
   // Listen for fullscreen changes
   useEffect(() => {
@@ -200,7 +240,13 @@ export default function Dashboard() {
       setCustomSubject("");
       setUseCustomSubject(false);
     } else {
-      setTimerTime(25 * 60);
+      if (timerMode === "focus") {
+        setTimerTime(focusDuration * 60);
+      } else if (timerMode === "shortBreak") {
+        setTimerTime(shortBreakDuration * 60);
+      } else {
+        setTimerTime(longBreakDuration * 60);
+      }
     }
     setIsTimerRunning(false);
   };
@@ -256,11 +302,11 @@ export default function Dashboard() {
           <body>
             <div class="content">
               <div class="timer" id="timer">${Math.floor(currentTime / 60)
-                .toString()
-                .padStart(
-                  2,
-                  "0",
-                )}:${(currentTime % 60).toString().padStart(2, "0")}</div>
+          .toString()
+          .padStart(
+            2,
+            "0",
+          )}:${(currentTime % 60).toString().padStart(2, "0")}</div>
               <div class="controls">
                 <button id="start">Start</button>
                 <button id="close">Close</button>
@@ -522,21 +568,19 @@ export default function Dashboard() {
                   <div className="flex mb-2">
                     <button
                       onClick={() => setUseCustomSubject(false)}
-                      className={`flex-1 py-2 rounded-l-lg font-medium transition-all cursor-pointer ${
-                        !useCustomSubject
-                          ? "bg-teal-500/80 text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
+                      className={`flex-1 py-2 rounded-l-lg font-medium transition-all cursor-pointer ${!useCustomSubject
+                        ? "bg-teal-500/80 text-white"
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
+                        }`}
                     >
                       Select Subject
                     </button>
                     <button
                       onClick={() => setUseCustomSubject(true)}
-                      className={`flex-1 py-2 rounded-r-lg font-medium transition-all cursor-pointer ${
-                        useCustomSubject
-                          ? "bg-teal-500/80 text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
+                      className={`flex-1 py-2 rounded-r-lg font-medium transition-all cursor-pointer ${useCustomSubject
+                        ? "bg-teal-500/80 text-white"
+                        : "bg-white/10 text-white/70 hover:bg-white/20"
+                        }`}
                     >
                       Custom Subject
                     </button>
@@ -771,31 +815,28 @@ export default function Dashboard() {
                 <div className="flex gap-2 mb-4 justify-center">
                   <button
                     onClick={() => switchTimerMode("focus")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${
-                      timerMode === "focus"
-                        ? "bg-teal-500/90 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "focus"
+                      ? "bg-teal-500/90 text-white"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
                   >
                     Focus
                   </button>
                   <button
                     onClick={() => switchTimerMode("shortBreak")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${
-                      timerMode === "shortBreak"
-                        ? "bg-teal-500/90 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "shortBreak"
+                      ? "bg-teal-500/90 text-white"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
                   >
                     Short Break
                   </button>
                   <button
                     onClick={() => switchTimerMode("longBreak")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${
-                      timerMode === "longBreak"
-                        ? "bg-teal-500/90 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                    }`}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "longBreak"
+                      ? "bg-teal-500/90 text-white"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
                   >
                     Long Break
                   </button>
@@ -994,11 +1035,10 @@ export default function Dashboard() {
                   {tasks.map((task) => (
                     <div key={task.id} className="flex items-center mb-2">
                       <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mr-2 transition-all duration-200 ${
-                          task.completed
-                            ? "bg-teal-500 border-teal-500"
-                            : "border-white/50 hover:border-white/80"
-                        }`}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mr-2 transition-all duration-200 ${task.completed
+                          ? "bg-teal-500 border-teal-500"
+                          : "border-white/50 hover:border-white/80"
+                          }`}
                         onClick={() => toggleTask(task.id)}
                       >
                         {task.completed && (
@@ -1093,11 +1133,10 @@ export default function Dashboard() {
                 setShowMusicModal(true);
               }
             }}
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${
-              activeIcon === "music"
-                ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
-                : "bg-white/5"
-            }`}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${activeIcon === "music"
+              ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
+              : "bg-white/5"
+              }`}
           >
             <svg
               className="w-6 h-6 text-white"
@@ -1118,11 +1157,10 @@ export default function Dashboard() {
                 setShowSoundModal(true);
               }
             }}
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${
-              activeIcon === "sound"
-                ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
-                : "bg-white/5"
-            }`}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${activeIcon === "sound"
+              ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
+              : "bg-white/5"
+              }`}
           >
             <svg
               className="w-6 h-6 text-white"
@@ -1140,13 +1178,12 @@ export default function Dashboard() {
           <div className="relative flex items-center bg-white/10 backdrop-blur-md rounded-2xl p-1 border border-white/20">
             {/* Sliding background indicator */}
             <div
-              className={`absolute top-1 bottom-1 w-8 rounded-xl bg-teal-500/90 shadow-lg shadow-teal-500/40 transition-all duration-500 ease-out ${
-                activeGroup === "timer"
-                  ? "left-1"
-                  : activeGroup === "home"
-                    ? "left-9"
-                    : "left-17"
-              }`}
+              className={`absolute top-1 bottom-1 w-8 rounded-xl bg-teal-500/90 shadow-lg shadow-teal-500/40 transition-all duration-500 ease-out ${activeGroup === "timer"
+                ? "left-1"
+                : activeGroup === "home"
+                  ? "left-9"
+                  : "left-17"
+                }`}
             />
 
             <button
@@ -1200,11 +1237,10 @@ export default function Dashboard() {
                 setShowShareModal(true);
               }
             }}
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${
-              activeIcon === "share"
-                ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
-                : "bg-white/5"
-            }`}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${activeIcon === "share"
+              ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
+              : "bg-white/5"
+              }`}
           >
             <svg
               className="w-6 h-6 text-white"
@@ -1225,11 +1261,10 @@ export default function Dashboard() {
                 setShowSettingsModal(true);
               }
             }}
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${
-              activeIcon === "settings"
-                ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
-                : "bg-white/5"
-            }`}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md border border-white/20 cursor-pointer ${activeIcon === "settings"
+              ? "bg-teal-500/90 shadow-lg shadow-teal-500/40 border-teal-400/50"
+              : "bg-white/5"
+              }`}
           >
             <svg
               className="w-6 h-6 text-white"
@@ -1310,12 +1345,22 @@ export default function Dashboard() {
         onBackgroundChange={setBackgroundUrl}
         currentBackground={backgroundUrl}
         onOpenAuth={() => setShowAuthModal(true)}
+        autoSwitch={autoSwitch}
+        setAutoSwitch={setAutoSwitch}
+        playSound={playSound}
+        setPlaySound={setPlaySound}
       />
 
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* Announcement Modal */}
+      <AnnouncementModal
+        isOpen={showAnnouncement}
+        onClose={handleCloseAnnouncement}
       />
     </div>
   );

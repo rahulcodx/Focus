@@ -1,132 +1,90 @@
-# Focus - Productivity Hub
+# Focus - Your Ultimate Productivity Hub 🚀
 
-A modern productivity app with authentication, task management, study tracking, and more.
+Focus is a premium, open-source productivity application designed to help you stay in the zone. Built with a stunning glassmorphism aesthetic, it combines essential tools like a Pomodoro timer, task management, ambient sounds, and syllabus tracking into one seamless experience.
 
-## Features
+![GitHub](https://img.shields.io/github/license/friday2su/Focus)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
-- 🔐 User Authentication (Login/Signup)
-- 📊 Task Management
-- ⏱️ Study Timer & Logs
-- 📚 Syllabus Tracker
-- 🎵 Background Music Integration
-- 🌙 Dark Theme with Glassy UI
+## ✨ Features
 
-## Getting Started
+### ⏱️ Intelligent Pomodoro Timer
+- **Mode-Aware Resets**: Timer intelligently resets based on your current session (Focus, Short Break, or Long Break).
+- **Auto-Switch**: Automatically transition between focus and break sessions to maintain your flow.
+- **Notification Sounds**: Stay alerted with premium audio cues when your session ends.
+- **Mini Timer Mode**: Keep your focus in a dedicated floating window.
+
+### 🎵 Ambient Soundboard & Music
+- **Clean Audio Switching**: High-performance audio engine prevents sound overlays and ensures instant transitions.
+- **Diverse Soundscapes**: From "Rainy Cafe" to "Deep Space," choose the perfect background for your work.
+- **Spotify Integration**: Embed your favorite productivity playlists directly into the dashboard.
+
+### 📊 Study Tracking & Syllabus
+- **Syllabus Tracker**: Manage your subjects and track chapter-wise progress with visual progress bars.
+- **Study Logs**: Log your study hours and see your performance rankings (Beginner to Excellent).
+- **Motivational Cues**: Daily rotating motivational quotes to keep you inspired.
+
+### 🎨 Premium UI/UX
+- **Glassmorphism Design**: High-end aesthetic with beautiful blurs and vibrant gradients.
+- **Dynamic Backgrounds**: Choose from a curated list of anime, nature, and study-themed backgrounds, or upload your own.
+- **Responsive & Fullscreen**: Optimized for different screen sizes with a dedicated distraction-free fullscreen mode.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Turbopack)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [MongoDB](https://www.mongodb.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Authentication**: JWT-based auth with the `jose` library
+- **Icons**: Custom SVG icons and Lucide-inspired components
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- MongoDB database
-- npm or yarn
+- MongoDB instance (Atlas or local)
 
 ### Installation
 
-1. Clone the repository
-2. Install dependencies:
+1. **Clone the Repo**
+   ```bash
+   git clone https://github.com/friday2su/Focus.git
+   cd Focus
+   ```
+
+2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env.local
+3. **Environment Setup**
+   Create a `.env.local` file in the root directory:
+   ```env
+   JWT_SECRET=your_strong_secret_here
+   MONGODB_URI=your_mongodb_connection_string
+   MONGODB_DB=focus
    ```
 
-   Fill in your environment variables:
-   - `JWT_SECRET`: A strong secret for JWT tokens
-   - `MONGODB_URI`: Your MongoDB connection string
-   - `MONGODB_DB`: Database name (default: 'focus')
-
-4. Run the development server:
+4. **Run Development Mode**
    ```bash
    npm run dev
    ```
+   Visit [http://localhost:3000](http://localhost:3000) to see it in action.
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+## 📖 Key Updates
 
-## Deployment
+- **Fixed**: Sound overlay bug where multiple ambient sounds would play simultaneously.
+- **Fixed**: Timer reset logic now correctly follows the active mode's duration.
+- **New**: Integrated **Open Source Announcement** modal for new users.
+- **Improved**: Mobile responsiveness for the syllabus tracker and study logs.
 
-### Vercel (Recommended)
+## 🤝 Contributing
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. **Set up environment variables** in Vercel dashboard (Project Settings → Environment Variables):
-   ```
-   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-   MONGODB_URI=your-mongodb-connection-string
-   MONGODB_DB=focus
-   ```
-   ⚠️ **Important**: Use plain text values, not secret references like "@jwt-secret"
+We love contributions! Whether it's fixing a bug, adding a new soundscape, or improving the UI.
 
-4. **Redeploy** the project
-5. **Test** the health endpoint: `https://your-domain.vercel.app/api/health`
+## 📜 License
 
-### Other Platforms
+Distributed under the MIT License. See `LICENSE` for more information.
 
-Make sure to set the environment variables in your deployment platform.
-
-## Troubleshooting
-
-### 404 Errors on Vercel
-- **Check environment variables**: Ensure all variables are set in Vercel dashboard (not as secret references)
-- **Verify API routes**: Visit `/api/health` to check if environment variables are loaded
-- **Check build logs**: Look for TypeScript compilation errors in Vercel deployment logs
-
-### Environment Variables Not Loading
-- **Plain text only**: Use actual values, not `@secret-name` references
-- **Case sensitive**: Ensure variable names match exactly (`JWT_SECRET`, not `jwt_secret`)
-- **Redeploy**: After adding environment variables, trigger a new deployment
-
-### Database Connection Issues
-- **MongoDB URI format**: Use `mongodb+srv://` for MongoDB Atlas
-- **Network access**: Ensure your MongoDB instance allows connections from Vercel's IP ranges
-- **Database exists**: Verify the database name exists in your MongoDB instance
-
-## Tech Stack
-
-- **Framework**: Next.js 15
-- **Language**: TypeScript
-- **Database**: MongoDB
-- **Styling**: Tailwind CSS
-- **Authentication**: JWT with jose library
-- **UI**: React with modern glassmorphism design
-
-## Configuration
-
-### Next.js 15 Updates
-
-This project uses Next.js 15 features including:
-- **Async Route Parameters**: All dynamic API routes use async `params`
-- **Modern JWT**: Uses the `jose` library for JWT operations
-- **Server External Packages**: MongoDB configured as external package for server components
-
-### Environment Variables
-
-Required environment variables for deployment:
-- `JWT_SECRET`: Secret key for JWT token signing
-- `MONGODB_URI`: MongoDB connection string
-- `MONGODB_DB`: Database name (default: 'focus')
-
-## API Routes
-
-- `POST /api/auth/login` - User login
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/logout` - User logout
-- `GET /api/user/me` - Get current user
-- `GET /api/tasks` - Get user tasks
-- `POST /api/tasks` - Create task
-- `PUT /api/tasks/[id]` - Update task
-- `DELETE /api/tasks/[id]` - Delete task
-- Similar routes for study logs, syllabus, and backgrounds
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-MIT License
+---
+Built with ❤️ by [FRIDAY](https://github.com/friday2su)
