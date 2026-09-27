@@ -1,18 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import ShareModal from "../components/ShareModal";
 import SoundModal from "../components/SoundModal";
 import MusicModal from "../components/MusicModal";
 import SettingsModal from "../components/SettingsModal";
 import AuthModal from "../components/AuthModal";
-import AnnouncementModal from "../components/AnnouncementModal";
+import TaskList from "../components/panels/TaskList";
+import SyllabusTracker, {
+  type Subject,
+} from "../components/panels/SyllabusTracker";
+import StudyLogger, { type StudyLogEntry } from "../components/panels/StudyLogger";
+import { ProgressBar } from "../components/panels/panel-primitives";
 import { useAuth } from "@/contexts/AuthContext";
 
+const MAX_SUBJECTS = 60;
+const MAX_CHAPTERS = 999;
+
+const TIMER_MODES = [
+  { id: "focus", label: "Focus" },
+  { id: "shortBreak", label: "Short Break" },
+  { id: "longBreak", label: "Long Break" },
+] as const;
+
+const PlayIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M8 5.14v13.72L19 12z" />
+  </svg>
+);
+
+const PauseIcon = (
+  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+    <path d="M7 5h4v14H7zm6 0h4v14h-4z" />
+  </svg>
+);
+
 export default function Dashboard() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  const { loading } = useAuth();
 
   const [time, setTime] = useState(new Date());
   const [activeIcon, setActiveIcon] = useState("home");
@@ -23,28 +47,16 @@ export default function Dashboard() {
   const [timerMode, setTimerMode] = useState<
     "focus" | "shortBreak" | "longBreak"
   >("focus");
-  const [focusDuration, setFocusDuration] = useState(25);
-  const [shortBreakDuration, setShortBreakDuration] = useState(5);
-  const [longBreakDuration, setLongBreakDuration] = useState(15);
+  const focusDuration = 25;
+  const shortBreakDuration = 5;
+  const longBreakDuration = 15;
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [showHoursInEdit, setShowHoursInEdit] = useState(false);
   const [editHours, setEditHours] = useState("00");
   const [editMinutes, setEditMinutes] = useState("25");
   const [editSeconds, setEditSeconds] = useState("00");
-  const [tasks, setTasks] = useState<
-    { id: number; text: string; completed: boolean }[]
-  >([]);
-  const [newTask, setNewTask] = useState("");
-  const [taskIdCounter, setTaskIdCounter] = useState(1);
   const [isStudyLogsMode, setIsStudyLogsMode] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState("");
-  const [customSubject, setCustomSubject] = useState("");
-  const [useCustomSubject, setUseCustomSubject] = useState(false);
-  const [studyLogs, setStudyLogs] = useState<
-    { subject: string; duration: number; date: string }[]
-  >([]);
-  const [showStudyLogs, setShowStudyLogs] = useState(false);
-  const [isMiniMode, setIsMiniMode] = useState(false);
+  const [studyLogs, setStudyLogs] = useState<StudyLogEntry[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showSoundModal, setShowSoundModal] = useState(false);
   const [showMusicModal, setShowMusicModal] = useState(false);
@@ -57,29 +69,12 @@ export default function Dashboard() {
     "https://i.pinimg.com/originals/14/ae/7e/14ae7ede205573466d68eb3a562fe349.gif",
   );
   const [embedVisible, setEmbedVisible] = useState(false);
-  const [syllabus, setSyllabus] = useState<
-    { subject: string; totalChapters: number; completedChapters: number }[]
-  >([]);
+  const [syllabus, setSyllabus] = useState<Subject[]>([]);
+  const [syllabusError, setSyllabusError] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [autoSwitch, setAutoSwitch] = useState(true);
   const [playSound, setPlaySound] = useState(true);
-  const [showAnnouncement, setShowAnnouncement] = useState(false);
-
-  useEffect(() => {
-    // Show announcement after a short delay on mount
-    const hasSeen = localStorage.getItem("hasSeenOSSAnnouncement");
-    if (!hasSeen) {
-      const timer = setTimeout(() => {
-        setShowAnnouncement(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleCloseAnnouncement = () => {
-    setShowAnnouncement(false);
-    localStorage.setItem("hasSeenOSSAnnouncement", "true");
-  };
+  const nextSubjectId = useRef(1);
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -150,14 +145,6 @@ export default function Dashboard() {
     };
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
   const formatTime = (date: Date) => {
     const hours = date.getHours();
     const minutes = date.getMinutes();
@@ -213,43 +200,147 @@ export default function Dashboard() {
     }
   };
 
-  const addTask = () => {
-    if (newTask.trim()) {
-      setTasks([
-        ...tasks,
-        { id: taskIdCounter, text: newTask, completed: false },
+  const addSubject = useCallback(
+    (subject: string) => {
+      if (syllabus.length >= MAX_SUBJECTS) {
+        setSyllabusError(`Up to ${MAX_SUBJECTS} subjects.`);
+        return;
+      }
+      if (
+        syllabus.some((s) => s.subject.toLowerCase() === subject.toLowerCase())
+      ) {
+        setSyllabusError(`"${subject}" is already tracked.`);
+        return;
+      }
+      setSyllabus((prev) => [
+        ...prev,
+        {
+          id: nextSubjectId.current++,
+          subject,
+          totalChapters: 0,
+          completedChapters: 0,
+        },
       ]);
-      setTaskIdCounter(taskIdCounter + 1);
-      setNewTask("");
-    }
-  };
+      setSyllabusError(null);
+    },
+    [syllabus],
+  );
 
-  const toggleTask = (id: number) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
+  const removeSubject = useCallback((id: number) => {
+    setSyllabus((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
+  const setSubjectTotal = useCallback((id: number, next: number) => {
+    const value = Math.max(0, Math.min(MAX_CHAPTERS, next || 0));
+    setSyllabus((prev) =>
+      prev.map((s) =>
+        // Shrinking the total can strand `completedChapters` above it.
+        s.id === id
+          ? {
+              ...s,
+              totalChapters: value,
+              completedChapters: Math.min(s.completedChapters, value),
+            }
+          : s,
       ),
     );
-  };
+  }, []);
+
+  /** Applies a stepper delta against current state, so rapid clicks
+      (which share one render) still accumulate correctly. */
+  const stepSubjectCompleted = useCallback((id: number, delta: number) => {
+    setSyllabus((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              completedChapters: Math.max(
+                0,
+                Math.min(s.completedChapters + delta, s.totalChapters),
+              ),
+            }
+          : s,
+      ),
+    );
+  }, []);
+
+  const resetSyllabusProgress = useCallback(() => {
+    setSyllabus((prev) => prev.map((s) => ({ ...s, completedChapters: 0 })));
+  }, []);
+
+  /** Subjects offered as logging targets: syllabus first, then past logs. */
+  const loggableSubjects = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const name of [
+      ...syllabus.map((s) => s.subject),
+      ...studyLogs.map((l) => l.subject),
+    ]) {
+      const key = name.toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        out.push(name);
+      }
+    }
+    return out;
+  }, [syllabus, studyLogs]);
+
+  const logStudySession = useCallback(
+    (subject: string) => {
+      setStudyLogs((prev) => {
+        const existing = prev.findIndex(
+          (log) => log.subject.toLowerCase() === subject.toLowerCase(),
+        );
+        if (existing >= 0) {
+          const next = [...prev];
+          next[existing] = {
+            ...next[existing],
+            duration: next[existing].duration + timerTime,
+          };
+          return next;
+        }
+        return [
+          ...prev,
+          { subject, duration: timerTime, date: new Date().toISOString() },
+        ];
+      });
+      setTimerTime(0);
+      setIsTimerRunning(false);
+    },
+    [timerTime],
+  );
+
+  const deleteStudyLog = useCallback((index: number) => {
+    setStudyLogs((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const clearStudyLogs = useCallback(() => setStudyLogs([]), []);
+
+  /** Throw away an in-progress manual study session. */
+  const discardStudySession = useCallback(() => {
+    setTimerTime(0);
+    setIsTimerRunning(false);
+  }, []);
 
   const resetTimer = () => {
-    if (isStudyLogsMode) {
-      setTimerTime(0);
-      setIsStudyLogsMode(false);
-      setSelectedSubject("");
-      setCustomSubject("");
-      setUseCustomSubject(false);
+    if (timerMode === "focus") {
+      setTimerTime(focusDuration * 60);
+    } else if (timerMode === "shortBreak") {
+      setTimerTime(shortBreakDuration * 60);
     } else {
-      if (timerMode === "focus") {
-        setTimerTime(focusDuration * 60);
-      } else if (timerMode === "shortBreak") {
-        setTimerTime(shortBreakDuration * 60);
-      } else {
-        setTimerTime(longBreakDuration * 60);
-      }
+      setTimerTime(longBreakDuration * 60);
     }
     setIsTimerRunning(false);
   };
+
+  const modeSeconds =
+    timerMode === "focus"
+      ? focusDuration * 60
+      : timerMode === "shortBreak"
+        ? shortBreakDuration * 60
+        : longBreakDuration * 60;
+
+  const sessionProgress = modeSeconds > 0 ? 1 - timerTime / modeSeconds : 0;
 
   const openMiniWindow = () => {
     const currentTime = timerTime;
@@ -366,61 +457,6 @@ export default function Dashboard() {
     setIsTimerMode(false);
     setTimerTime(0);
     setIsTimerRunning(false);
-    setSelectedSubject("");
-    setCustomSubject("");
-    setUseCustomSubject(false);
-  };
-
-  const formatStudyTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleLogStudy = () => {
-    const subjectToLog = useCustomSubject ? customSubject : selectedSubject;
-    if (subjectToLog && timerTime > 0) {
-      const newLog = {
-        subject: subjectToLog,
-        duration: timerTime,
-        date: new Date().toISOString(),
-      };
-
-      setStudyLogs((prev) => {
-        const existingIndex = prev.findIndex(
-          (log) => log.subject === subjectToLog,
-        );
-        if (existingIndex >= 0) {
-          // Update existing subject
-          const updated = [...prev];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            duration: updated[existingIndex].duration + timerTime,
-          };
-          return updated;
-        } else {
-          // Add new subject
-          return [...prev, newLog];
-        }
-      });
-
-      setShowStudyLogs(true);
-      setTimerTime(0);
-      setIsTimerRunning(false);
-      setSelectedSubject("");
-      setCustomSubject("");
-      setUseCustomSubject(false);
-    }
-  };
-
-  const getSubjectRanking = (duration: number) => {
-    if (duration >= 3600 * 5)
-      return { rank: "Excellent", color: "text-green-400" };
-    if (duration >= 3600 * 3) return { rank: "Best", color: "text-blue-400" };
-    if (duration >= 3600 * 2) return { rank: "Good", color: "text-yellow-400" };
-    if (duration >= 3600) return { rank: "Average", color: "text-orange-400" };
-    return { rank: "Beginner", color: "text-red-400" };
   };
 
   const toggleFullscreen = async () => {
@@ -452,15 +488,11 @@ export default function Dashboard() {
       setTimerMode("focus");
       setTimerTime(focusDuration * 60);
       setIsTimerRunning(false);
-      setSelectedSubject("");
     } else if (groupName === "home") {
       setIsTimerMode(false);
       setIsStudyLogsMode(false);
       setTimerTime(25 * 60);
       setIsTimerRunning(false);
-      setSelectedSubject("");
-      setCustomSubject("");
-      setUseCustomSubject(false);
     } else if (groupName === "idea") {
       handleIdeaClick();
     }
@@ -511,33 +543,45 @@ export default function Dashboard() {
     "Aim high, achieve more!",
   ];
 
+  // Note: kept after every hook so the hook order stays stable while
+  // the auth provider resolves.
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat relative overflow-hidden"
-      style={{ backgroundImage: `url('${backgroundUrl}')` }}
-    >
-      {/* Dark Overlay */}
+    <div className="min-h-screen relative">
+      {/* Background + overlay are fixed so the content column can scroll
+          underneath them without dragging the artwork along. */}
       <div
-        className="absolute inset-0 z-0"
+        className="fixed inset-0 -z-20 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('${backgroundUrl}')` }}
+      />
+      <div
+        className="fixed inset-0 -z-10"
         style={{
           background:
             "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.8) 100%)",
         }}
-      ></div>
+      />
       {/* Logo */}
-      <div className="absolute top-6 left-6 z-10">
+      <div className="fixed top-6 left-6 z-30">
         <div className="text-white">
           <div className="text-6xl font-bold">focus</div>
           <div className="text-[10px] text-white text-right">
-            by F R I D A Y
+            by RAHULCODX
           </div>
         </div>
       </div>
 
       {/* Check Source Code */}
-      <div className="absolute top-6 right-6 z-30">
+      <div className="fixed top-6 right-6 z-30">
         <a
-          href="https://github.com/friday2su/Focus"
+          href="https://github.com/rahulxdevv/Focus"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl p-2.5 sm:px-4 transition-all duration-300 text-white group shadow-lg"
@@ -550,8 +594,10 @@ export default function Dashboard() {
         </a>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-col items-center justify-center min-h-screen px-6 relative z-20">
+      {/* Main Content — `m-auto` on the inner column keeps the clock centred
+          on tall screens without clipping the top of an overflowing view. */}
+      <div className="relative z-20 w-full min-h-screen flex px-4 sm:px-6">
+        <div className="m-auto w-full flex flex-col items-center py-24">
         {!isTimerMode && !isStudyLogsMode ? (
           <>
             {/* Motivational Text and Real-time Clock Centered */}
@@ -570,552 +616,250 @@ export default function Dashboard() {
             </div>
           </>
         ) : isStudyLogsMode ? (
-          <div className="flex gap-6 w-full max-w-6xl">
-            {/* Left Side - Timer and Controls */}
-            <div className="flex-1 flex flex-col items-center justify-center">
-              {/* Study Timer */}
-              <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
-                <div className="text-white text-[6rem] font-bold font-avion tracking-wider mb-4">
-                  {formatStudyTime(timerTime)}
+          <StudyLogger
+            elapsed={timerTime}
+            isRunning={isTimerRunning}
+            onToggle={() => setIsTimerRunning((running) => !running)}
+            onLog={logStudySession}
+            onDiscard={discardStudySession}
+            logs={studyLogs}
+            onDeleteLog={deleteStudyLog}
+            onClearLogs={clearStudyLogs}
+            knownSubjects={loggableSubjects}
+          />
+        ) : (
+          <div className="w-full max-w-7xl grid gap-5 grid-cols-1 md:grid-cols-2 xl:grid-cols-[17.5rem_minmax(0,1fr)_17.5rem] items-start">
+            {/* Left — Syllabus tracker */}
+            <div className="order-2 xl:order-1">
+              <SyllabusTracker
+                subjects={syllabus}
+                onAdd={addSubject}
+                onRemove={removeSubject}
+                onSetTotal={setSubjectTotal}
+                onStepCompleted={stepSubjectCompleted}
+                onResetProgress={resetSyllabusProgress}
+                error={syllabusError}
+                onErrorConsumed={() => setSyllabusError(null)}
+              />
+            </div>
+
+            {/* Center — Timer */}
+            <div className="order-1 xl:order-2 md:col-span-2 xl:col-span-1 flex flex-col items-center">
+              <div className="w-full max-w-lg bg-white/10 backdrop-blur-md rounded-2xl p-6 sm:p-7 border border-white/20 shadow-2xl shadow-black/25">
+                {/* Mode switcher — `flex` (block-level) so `mx-auto` can
+                    actually centre it; `w-fit` keeps it shrink-wrapped. */}
+                <div
+                  role="radiogroup"
+                  aria-label="Timer mode"
+                  className="flex w-fit mx-auto items-center gap-1 p-1 rounded-xl bg-white/5 border border-white/15"
+                >
+                  {TIMER_MODES.map((mode) => {
+                    const isActive = timerMode === mode.id;
+                    return (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={isActive}
+                        onClick={() => switchTimerMode(mode.id)}
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+                          isActive
+                            ? "bg-teal-500 text-white shadow-lg shadow-teal-500/30"
+                            : "text-white/60 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {mode.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* Subject Selection */}
-                <div className="mb-6">
-                  <div className="flex mb-2">
-                    <button
-                      onClick={() => setUseCustomSubject(false)}
-                      className={`flex-1 py-2 rounded-l-lg font-medium transition-all cursor-pointer ${!useCustomSubject
-                        ? "bg-teal-500/80 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                        }`}
-                    >
-                      Select Subject
-                    </button>
-                    <button
-                      onClick={() => setUseCustomSubject(true)}
-                      className={`flex-1 py-2 rounded-r-lg font-medium transition-all cursor-pointer ${useCustomSubject
-                        ? "bg-teal-500/80 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20"
-                        }`}
-                    >
-                      Custom Subject
-                    </button>
-                  </div>
+                {/* Readout */}
+                <div className="mt-6 mb-2 flex flex-col items-center">
+                  {isEditingTime ? (
+                    <>
+                      <div className="flex justify-center items-center gap-2">
+                        {showHoursInEdit ? (
+                          <>
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={editHours}
+                              min="0"
+                              max="99"
+                              aria-label="Hours"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (
+                                  val === "" ||
+                                  (parseInt(val) >= 0 && parseInt(val) <= 99)
+                                ) {
+                                  setEditHours(val.padStart(2, "0"));
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const val = parseInt(e.target.value) || 0;
+                                setEditHours(
+                                  val.toString().padStart(2, "0"),
+                                );
+                              }}
+                              className="no-spin panel-focus w-20 sm:w-24 bg-white/10 text-white text-[clamp(2.5rem,9vw,3.5rem)] leading-none font-bold text-center rounded-xl border border-white/20 focus:border-teal-400/60"
+                            />
+                            <span className="text-white/40 text-[clamp(2.5rem,9vw,3.5rem)] leading-none font-bold">
+                              :
+                            </span>
+                          </>
+                        ) : null}
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={editMinutes}
+                          min="0"
+                          max="59"
+                          aria-label="Minutes"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (
+                              val === "" ||
+                              (parseInt(val) >= 0 && parseInt(val) <= 59)
+                            ) {
+                              setEditMinutes(val.padStart(2, "0"));
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            setEditMinutes(
+                              Math.min(59, val).toString().padStart(2, "0"),
+                            );
+                          }}
+                          className="no-spin panel-focus w-20 sm:w-24 bg-white/10 text-white text-[clamp(2.5rem,9vw,3.5rem)] leading-none font-bold text-center rounded-xl border border-white/20 focus:border-teal-400/60"
+                        />
+                        <span className="text-white/40 text-[clamp(2.5rem,9vw,3.5rem)] leading-none font-bold">
+                          :
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={editSeconds}
+                          min="0"
+                          max="59"
+                          aria-label="Seconds"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (
+                              val === "" ||
+                              (parseInt(val) >= 0 && parseInt(val) <= 59)
+                            ) {
+                              setEditSeconds(val.padStart(2, "0"));
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value) || 0;
+                            setEditSeconds(
+                              Math.min(59, val).toString().padStart(2, "0"),
+                            );
+                          }}
+                          className="no-spin panel-focus w-20 sm:w-24 bg-white/10 text-white text-[clamp(2.5rem,9vw,3.5rem)] leading-none font-bold text-center rounded-xl border border-white/20 focus:border-teal-400/60"
+                        />
+                      </div>
 
-                  {!useCustomSubject ? (
-                    <select
-                      value={selectedSubject}
-                      onChange={(e) => setSelectedSubject(e.target.value)}
-                      className="w-full bg-white/20 text-white rounded-lg px-4 py-3 border border-white/30 focus:bg-white/30 focus:border-white/50 cursor-pointer"
-                    >
-                      <option value="">Select Subject</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="English">English</option>
-                      <option value="Physics">Physics</option>
-                      <option value="Chemistry">Chemistry</option>
-                      <option value="Biology">Biology</option>
-                      <option value="Computer Science">Computer Science</option>
-                      <option value="History">History</option>
-                      <option value="Geography">Geography</option>
-                      <option value="Economics">Economics</option>
-                      <option value="Psychology">Psychology</option>
-                    </select>
+                      <div className="flex items-center gap-4 mt-4">
+                        <button
+                          type="button"
+                          onClick={() => setShowHoursInEdit((v) => !v)}
+                          className="text-[11px] font-semibold text-white/50 hover:text-white transition-colors"
+                        >
+                          {showHoursInEdit ? "Hide hours" : "Add hours"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleEditTime}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-teal-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-teal-400 transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </>
                   ) : (
-                    <input
-                      type="text"
-                      value={customSubject}
-                      onChange={(e) => setCustomSubject(e.target.value)}
-                      placeholder="Enter custom subject..."
-                      className="w-full bg-white/20 text-white placeholder-white/60 rounded-lg px-4 py-3 border border-white/30 focus:bg-white/30 focus:border-white/50 cursor-pointer"
-                    />
+                    /* tabular-nums keeps the readout from shifting as digits change */
+                    <div
+                      role="timer"
+                      aria-label={`${Math.floor(timerTime / 60)} minutes ${timerTime % 60} seconds remaining`}
+                      className="text-white text-[clamp(3.5rem,14vw,5.5rem)] leading-none font-bold tabular-nums tracking-tight"
+                    >
+                      {formatTimerTime(timerTime)}
+                    </div>
                   )}
                 </div>
 
-                {/* Control Buttons */}
-                <div className="flex justify-center gap-4">
+                {/* Session progress */}
+                {!isEditingTime ? (
+                  <ProgressBar value={sessionProgress} className="mt-4" />
+                ) : null}
+
+                {/* Controls */}
+                <div className="mt-6 flex items-center justify-center gap-2.5">
                   <button
-                    onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
-                  >
-                    {isTimerRunning ? "Pause" : "Start"}
-                  </button>
-                  <button
-                    onClick={handleLogStudy}
-                    disabled={
-                      (!selectedSubject && !customSubject) || timerTime === 0
-                    }
-                    className="bg-teal-500/80 text-white px-6 py-3 rounded-lg font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-teal-500 transition-all"
-                  >
-                    Log Study
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Study Logs Display */}
-            {showStudyLogs && (
-              <div className="w-80 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                <h2 className="text-white text-xl font-bold mb-4">
-                  Study Rankings
-                </h2>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {studyLogs
-                    .sort((a, b) => b.duration - a.duration)
-                    .map((log, index) => {
-                      const ranking = getSubjectRanking(log.duration);
-                      return (
-                        <div
-                          key={index}
-                          className="bg-white/10 rounded-lg p-3 border border-white/20"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-white font-medium">
-                              {log.subject}
-                            </span>
-                            <span
-                              className={`text-sm font-bold ${ranking.color}`}
-                            >
-                              {ranking.rank}
-                            </span>
-                          </div>
-                          <div className="text-white/70 text-sm">
-                            Duration: {formatStudyTime(log.duration)}
-                          </div>
-                          <div className="text-white/50 text-xs">
-                            {new Date(log.date).toLocaleDateString()}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : isTimerMode ? (
-          <div className="flex gap-6 w-full max-w-7xl">
-            {/* Left Side - Syllabus Tracker */}
-            <div className="w-80">
-              <style jsx>{`
-                .custom-scrollbar {
-                  scrollbar-width: thin;
-                  scrollbar-color: #9ca3af transparent;
-                }
-
-                .custom-scrollbar::-webkit-scrollbar {
-                  width: 0px;
-                  height: 2px;
-                }
-
-                .custom-scrollbar::-webkit-scrollbar-track {
-                  background: transparent;
-                }
-
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background-color: #9ca3af;
-                  border-radius: 2px;
-                }
-
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background-color: #6b7280;
-                }
-
-                .syllabus-input::-webkit-outer-spin-button,
-                .syllabus-input::-webkit-inner-spin-button {
-                  -webkit-appearance: none;
-                  margin: 0;
-                }
-                .syllabus-input[type="number"] {
-                  -moz-appearance: textfield;
-                  appearance: textfield;
-                }
-              `}</style>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <h2 className="text-white text-lg font-bold mb-3">
-                  Syllabus Tracker
-                </h2>
-                {/* Add Subject */}
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    placeholder="Enter subject name"
-                    className="w-full bg-white/20 text-white placeholder-white/60 rounded-lg px-3 py-2 border border-white/30 mb-2 focus:outline-none"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        const subject = (
-                          e.target as HTMLInputElement
-                        ).value.trim();
-                        if (subject) {
-                          setSyllabus([
-                            ...syllabus,
-                            { subject, totalChapters: 0, completedChapters: 0 },
-                          ]);
-                          (e.target as HTMLInputElement).value = "";
-                        }
-                      }
-                    }}
-                  />
-                </div>
-                {/* Subjects List */}
-                <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                  {syllabus.map((item, index) => (
-                    <div
-                      key={index}
-                      className="bg-white/5 rounded-lg p-3 border border-white/10"
-                    >
-                      <div className="text-white font-medium mb-2">
-                        {item.subject}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input
-                          type="number"
-                          placeholder="Total Chapters"
-                          value={item.totalChapters || ""}
-                          min="0"
-                          step="1"
-                          onChange={(e) => {
-                            const newSyllabus = [...syllabus];
-                            newSyllabus[index].totalChapters = Math.max(
-                              0,
-                              parseInt(e.target.value) || 0,
-                            );
-                            setSyllabus(newSyllabus);
-                          }}
-                          className="syllabus-input bg-white/20 text-white placeholder-white/60 rounded-lg px-2 py-1 border border-white/30 text-sm focus:outline-none"
-                        />
-                        <input
-                          type="number"
-                          placeholder="Completed Chapters"
-                          value={item.completedChapters || ""}
-                          min="0"
-                          max={item.totalChapters}
-                          step="1"
-                          onChange={(e) => {
-                            const newSyllabus = [...syllabus];
-                            const value = Math.max(
-                              0,
-                              parseInt(e.target.value) || 0,
-                            );
-                            newSyllabus[index].completedChapters = Math.min(
-                              value,
-                              item.totalChapters,
-                            );
-                            setSyllabus(newSyllabus);
-                          }}
-                          className="syllabus-input bg-white/20 text-white placeholder-white/60 rounded-lg px-2 py-1 border border-white/30 text-sm focus:outline-none"
-                        />
-                      </div>
-                      {item.totalChapters > 0 && (
-                        <div className="w-full bg-white/20 rounded-full h-2">
-                          <div
-                            className="bg-teal-500 h-2 rounded-full transition-all"
-                            style={{
-                              width: `${(item.completedChapters / item.totalChapters) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      )}
-                      <div className="text-white/70 text-xs mt-1">
-                        {item.completedChapters}/{item.totalChapters} chapters
-                        completed
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Center - Timer */}
-            <div className="flex-1 flex flex-col items-center justify-center">
-              <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 relative">
-                {/* Timer Mode Selector */}
-                <div className="flex gap-2 mb-4 justify-center">
-                  <button
-                    onClick={() => switchTimerMode("focus")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "focus"
-                      ? "bg-teal-500/90 text-white"
-                      : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
-                  >
-                    Focus
-                  </button>
-                  <button
-                    onClick={() => switchTimerMode("shortBreak")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "shortBreak"
-                      ? "bg-teal-500/90 text-white"
-                      : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
-                  >
-                    Short Break
-                  </button>
-                  <button
-                    onClick={() => switchTimerMode("longBreak")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${timerMode === "longBreak"
-                      ? "bg-teal-500/90 text-white"
-                      : "bg-white/10 text-white/70 hover:bg-white/20"
-                      }`}
-                  >
-                    Long Break
-                  </button>
-                </div>
-
-                {/* Edit Time Button */}
-                <div className="flex justify-center mb-4">
-                  <button
+                    type="button"
                     onClick={handleEditTime}
-                    className="text-white/60 hover:text-white transition-all cursor-pointer flex items-center gap-1"
-                    title="Edit time"
+                    className="panel-focus inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white/50 hover:text-white hover:bg-white/10 border border-transparent transition-all duration-200"
                   >
-                    {isEditingTime ? (
-                      <>
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg>
-                        <span className="text-sm">Save</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                        </svg>
-                        <span className="text-sm">Edit Time</span>
-                      </>
-                    )}
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                    </svg>
+                    {isEditingTime ? "Cancel" : "Edit"}
                   </button>
-                </div>
 
-                {/* Timer Display */}
-                {isEditingTime ? (
-                  <div className="flex flex-col items-center mb-6">
-                    <style jsx>{`
-                      .timer-input::-webkit-outer-spin-button,
-                      .timer-input::-webkit-inner-spin-button {
-                        -webkit-appearance: none;
-                        margin: 0;
-                      }
-                      .timer-input[type="number"] {
-                        -moz-appearance: textfield;
-                        appearance: textfield;
-                      }
-                    `}</style>
-                    <div className="flex justify-center items-center gap-2 mb-2">
-                      {showHoursInEdit && (
-                        <>
-                          <input
-                            type="number"
-                            value={editHours}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (
-                                val === "" ||
-                                (parseInt(val) >= 0 && parseInt(val) <= 99)
-                              ) {
-                                setEditHours(val.padStart(2, "0"));
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const val = parseInt(e.target.value) || 0;
-                              setEditHours(val.toString().padStart(2, "0"));
-                            }}
-                            min="0"
-                            max="99"
-                            className="timer-input w-24 bg-white/20 text-white text-[4rem] font-bold text-center rounded-lg border border-white/30 cursor-text focus:outline-none focus:border-teal-500"
-                          />
-                          <span className="text-white text-[4rem] font-bold">
-                            :
-                          </span>
-                        </>
-                      )}
-                      <input
-                        type="number"
-                        value={editMinutes}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (
-                            val === "" ||
-                            (parseInt(val) >= 0 && parseInt(val) <= 59)
-                          ) {
-                            setEditMinutes(val.padStart(2, "0"));
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value) || 0;
-                          setEditMinutes(
-                            Math.min(59, val).toString().padStart(2, "0"),
-                          );
-                        }}
-                        min="0"
-                        max="59"
-                        className="timer-input w-24 bg-white/20 text-white text-[4rem] font-bold text-center rounded-lg border border-white/30 cursor-text focus:outline-none focus:border-teal-500"
-                      />
-                      <span className="text-white text-[4rem] font-bold">
-                        :
-                      </span>
-                      <input
-                        type="number"
-                        value={editSeconds}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (
-                            val === "" ||
-                            (parseInt(val) >= 0 && parseInt(val) <= 59)
-                          ) {
-                            setEditSeconds(val.padStart(2, "0"));
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value) || 0;
-                          setEditSeconds(
-                            Math.min(59, val).toString().padStart(2, "0"),
-                          );
-                        }}
-                        min="0"
-                        max="59"
-                        className="timer-input w-24 bg-white/20 text-white text-[4rem] font-bold text-center rounded-lg border border-white/30 cursor-text focus:outline-none focus:border-teal-500"
-                      />
-                    </div>
-                    <button
-                      onClick={() => setShowHoursInEdit(!showHoursInEdit)}
-                      className="text-white/60 hover:text-white text-xs cursor-pointer transition-all"
-                    >
-                      {showHoursInEdit ? "Hide Hours" : "Add Hours"}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-white text-[6rem] font-bold font-avion tracking-wider mb-6">
-                    {formatTimerTime(timerTime)}
-                  </div>
-                )}
-
-                {/* Control Buttons */}
-                <div className="flex justify-center gap-4">
                   <button
-                    onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
+                    type="button"
+                    onClick={() => setIsTimerRunning((running) => !running)}
+                    className="panel-focus inline-flex items-center gap-2 rounded-xl bg-teal-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-400 shadow-lg shadow-teal-500/25 border border-teal-400/40 transition-all duration-200 active:scale-[0.98]"
                   >
+                    {isTimerRunning ? PauseIcon : PlayIcon}
                     {isTimerRunning ? "Pause" : "Start"}
                   </button>
+
                   <button
-                    onClick={() => {
-                      setIsTimerRunning(false);
-                      if (timerMode === "focus") {
-                        setTimerTime(focusDuration * 60);
-                      } else if (timerMode === "shortBreak") {
-                        setTimerTime(shortBreakDuration * 60);
-                      } else {
-                        setTimerTime(longBreakDuration * 60);
-                      }
-                    }}
-                    className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
+                    type="button"
+                    onClick={resetTimer}
+                    className="panel-focus inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/20 border border-white/20 transition-all duration-200 active:scale-[0.98]"
                   >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M12 5V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7" />
+                    </svg>
                     Reset
                   </button>
+
                   <button
-                    onClick={() => openMiniWindow()}
-                    className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
+                    type="button"
+                    onClick={openMiniWindow}
+                    aria-label="Open mini timer in a small window"
+                    title="Open mini timer in a small window"
+                    className="panel-focus grid place-items-center w-10 h-10 rounded-xl bg-white/10 border border-white/20 text-white/70 hover:bg-white/20 hover:text-white transition-all duration-200 active:scale-95"
                   >
-                    Mini Screen
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <path d="M9 4H4v5M20 9V4h-5M15 20h5v-5M4 15v5h5" />
+                    </svg>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Tasks */}
-            <div className="w-80">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <h2 className="text-white text-lg font-bold mb-3">Tasks</h2>
-                <div className="flex mb-3">
-                  <input
-                    type="text"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="Add a task..."
-                    className="flex-1 bg-white/20 text-white placeholder-white/60 rounded-lg px-3 py-2 border border-white/30 focus:outline-none"
-                    onKeyPress={(e) => e.key === "Enter" && addTask()}
-                  />
-                  <button
-                    onClick={addTask}
-                    className="ml-2 bg-white/20 text-white px-3 py-2 rounded-lg cursor-pointer hover:bg-white/30 transition-all"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="flex items-center mb-2">
-                      <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer mr-2 transition-all duration-200 ${task.completed
-                          ? "bg-teal-500 border-teal-500"
-                          : "border-white/50 hover:border-white/80"
-                          }`}
-                        onClick={() => toggleTask(task.id)}
-                      >
-                        {task.completed && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                          </svg>
-                        )}
-                      </div>
-                      <span
-                        className={`flex-1 transition-all duration-200 ${task.completed ? "line-through text-white/60" : "text-white"}`}
-                      >
-                        {task.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center min-h-screen">
-            {/* Motivational Text and Time */}
-            <div className="text-center mb-8">
-              <div className="text-white text-2xl font-bold mb-4 font-avion">
-                {motivationalTexts[time.getDay()]}
-              </div>
-              <div className="text-white text-6xl font-bold font-avion tracking-wider">
-                {formatTime(time)}
-              </div>
-            </div>
-
-            {/* Timer Section */}
-            <div className="text-center bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-              <div className="text-white text-[6rem] font-bold font-avion tracking-wider mb-6">
-                {formatTimerTime(timerTime)}
-              </div>
-
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
-                >
-                  {isTimerRunning ? "Pause" : "Start"}
-                </button>
-                <button
-                  onClick={() => {
-                    setIsTimerRunning(false);
-                    setTimerTime(25 * 60);
-                  }}
-                  className="bg-white/20 text-white px-6 py-3 rounded-lg font-bold cursor-pointer hover:bg-white/30 transition-all"
-                >
-                  Reset
-                </button>
-              </div>
+            {/* Right — Tasks */}
+            <div className="order-3">
+              <TaskList />
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Spotify Embed */}
@@ -1136,10 +880,13 @@ export default function Dashboard() {
       )}
 
       {/* Bottom Navigation */}
-      <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center z-30">
+      <div className="fixed bottom-6 left-6 right-6 flex justify-between items-end z-30 pointer-events-none">
         {/* Left Side - Music and Sound */}
-        <div className="flex gap-3">
+        <div className="flex gap-3 pointer-events-auto">
           <button
+            type="button"
+            aria-label="Music"
+            aria-pressed={showMusicModal}
             onClick={() => {
               if (activeIcon === "music") {
                 handleIconClick("home");
@@ -1164,6 +911,9 @@ export default function Dashboard() {
           </button>
 
           <button
+            type="button"
+            aria-label="Ambient sounds"
+            aria-pressed={showSoundModal}
             onClick={() => {
               if (activeIcon === "sound") {
                 handleIconClick("home");
@@ -1189,7 +939,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Side - Grouped Timer/Home/Idea + Individual Icons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pointer-events-auto">
           {/* Grouped Timer/Home/Idea with sliding indicator */}
           <div className="relative flex items-center bg-white/10 backdrop-blur-md rounded-2xl p-1 border border-white/20">
             {/* Sliding background indicator */}
@@ -1203,6 +953,9 @@ export default function Dashboard() {
             />
 
             <button
+              type="button"
+              aria-label="Focus timer"
+              aria-pressed={activeGroup === "timer"}
               onClick={() => handleGroupClick("timer")}
               className="relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer z-10"
             >
@@ -1216,6 +969,9 @@ export default function Dashboard() {
             </button>
 
             <button
+              type="button"
+              aria-label="Clock"
+              aria-pressed={activeGroup === "home"}
               onClick={() => handleGroupClick("home")}
               className="relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer z-10"
             >
@@ -1229,6 +985,9 @@ export default function Dashboard() {
             </button>
 
             <button
+              type="button"
+              aria-label="Study log"
+              aria-pressed={activeGroup === "idea"}
               onClick={() => handleGroupClick("idea")}
               className="relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 cursor-pointer z-10"
             >
@@ -1244,6 +1003,9 @@ export default function Dashboard() {
 
           {/* Individual buttons */}
           <button
+            type="button"
+            aria-label="Share"
+            aria-pressed={showShareModal}
             onClick={() => {
               if (activeIcon === "share") {
                 handleIconClick("home");
@@ -1268,6 +1030,9 @@ export default function Dashboard() {
           </button>
 
           <button
+            type="button"
+            aria-label="Settings"
+            aria-pressed={showSettingsModal}
             onClick={() => {
               if (activeIcon === "settings") {
                 handleIconClick("home");
@@ -1292,6 +1057,8 @@ export default function Dashboard() {
           </button>
 
           <button
+            type="button"
+            aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
             onClick={() => {
               handleIconClick("fullscreen");
               toggleFullscreen();
@@ -1371,12 +1138,6 @@ export default function Dashboard() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-      />
-
-      {/* Announcement Modal */}
-      <AnnouncementModal
-        isOpen={showAnnouncement}
-        onClose={handleCloseAnnouncement}
       />
     </div>
   );

@@ -2,7 +2,7 @@
 
 Focus is a premium, open-source productivity application designed to help you stay in the zone. Built with a stunning glassmorphism aesthetic, it combines essential tools like a Pomodoro timer, task management, ambient sounds, and syllabus tracking into one seamless experience.
 
-![GitHub](https://img.shields.io/github/license/friday2su/Focus)
+![GitHub](https://img.shields.io/github/license/rahulxdevv/Focus)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 
@@ -48,7 +48,7 @@ Focus is a premium, open-source productivity application designed to help you st
 
 1. **Clone the Repo**
    ```bash
-   git clone https://github.com/friday2su/Focus.git
+   git clone https://github.com/rahulxdevv/Focus.git
    cd Focus
    ```
 
@@ -75,7 +75,8 @@ Focus is a premium, open-source productivity application designed to help you st
 
 - **Fixed**: Sound overlay bug where multiple ambient sounds would play simultaneously.
 - **Fixed**: Timer reset logic now correctly follows the active mode's duration.
-- **New**: Integrated **Open Source Announcement** modal for new users.
+- **Improved**: Task list, syllabus tracker, and study logger rebuilt with delete/reset controls, live progress rollups, and keyboard-accessible controls.
+- **Fixed**: Timer and clock digits now use tabular figures so the layout no longer shifts as the seconds tick.
 - **Improved**: Mobile responsiveness for the syllabus tracker and study logs.
 
 ## 🤝 Contributing
@@ -87,4 +88,4 @@ We love contributions! Whether it's fixing a bug, adding a new soundscape, or im
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-Built with ❤️ by [FRIDAY](https://github.com/friday2su)
+Built with ❤️ by [rahulxdevv](https://github.com/rahulxdevv)

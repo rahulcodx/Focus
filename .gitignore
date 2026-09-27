@@ -42,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Background harvest output
+background-candidates.json
+background-audit.json

@@ -1,10 +1,3 @@
-@font-face {
-  font-family: 'Avion Medium';
-  src: url('/fonts/Avion-Medium.otf') format('opentype'); /* Adjust the filename if it's different */
-  font-weight: 500;
-  font-style: normal;
-}
-
 @import "tailwindcss";
 
 :root {
@@ -218,6 +211,95 @@ body {
 
 .animate-fade-in-up {
     animation: fadeInUp 0.6s ease-out;
+}
+
+/* Dashboard panel primitives
+   ---------------------------------------------------------- */
+
+/* Entry animation for list items inside the dashboard panels.
+   Used with a per-index `animation-delay` so rows cascade in
+   instead of all popping at once. */
+@keyframes panelItemIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-panel-item {
+    animation: panelItemIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Hide the native number spinners so steppers and counters read as
+   deliberate controls instead of default browser chrome. */
+.no-spin::-webkit-outer-spin-button,
+.no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.no-spin {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Slim scrollbar for the fixed-height panel bodies. The global
+   scrollbar is light-on-white, which disappears over a dark
+   glass panel, so panels opt into this variant. */
+.glass-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.glass-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.glass-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.glass-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    border: none;
+}
+
+.glass-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* Consistent focus treatment for every interactive element inside
+   the dashboard panels, so keyboard users get a real focus ring
+   rather than the browser default being clipped by `overflow`. */
+.panel-focus:focus-visible {
+    outline: 2px solid var(--accent-teal-light);
+    outline-offset: 2px;
+}
+
+/* Pointer affordance.
+   Tailwind v4's preflight does not set a cursor on buttons, so every
+   control would otherwise fall back to the default arrow. Enforced
+   globally rather than per-component so new controls stay consistent. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+}
+
+/* Stop labels inside controls from being selected on click, which
+   otherwise leaves a stray text highlight after pressing a button. */
+button,
+label,
+[role="button"],
+[role="checkbox"],
+[role="radio"] {
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .animate-float {
